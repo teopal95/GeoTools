@@ -5,7 +5,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.location.Location;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -41,6 +43,7 @@ import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.GeoPoint;
 import com.google.firebase.firestore.ListenerRegistration;
 import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
@@ -48,6 +51,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -56,27 +60,28 @@ import java.util.Map;
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
 
-
-
     private TextView textViewData;
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
+    private CollectionReference polygonRef = db.collection("Polygon");
     private DocumentReference noteRef = db.collection("Coordinates").document("Marker");
-
 
 
     // Initialize Variables
     GoogleMap gMap;
-    Double lat;
-    Double lng;
+
+
+    String polygonString;
+
 
     Button btDraw, btClear;
 
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
+    List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
-
+    List<String> tags;
 
 
     @Override
@@ -98,7 +103,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         supportMapFragment.getMapAsync(this::onMapReady);
 
 
-
         btDraw.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -107,14 +111,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
+                    polygonList.addAll(latLngList);
+                    polygonString = polygonList.toString();
+
                     latLngList.clear();
                     markerList.clear();
+
 
                 } catch (Exception e) {
                     System.out.println("");
                 }
 
-
+                polygonList.clear();
 
 
             }
@@ -130,16 +138,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     markerList.clear();
                     gMap.clear();
                     polygon.remove();
-                };
-
-
+                }
+                ;
 
 
             }
         });
-
-
-
 
 
     }
@@ -147,85 +151,31 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onStart() {
         super.onStart();
-        coordinatesRef.limit(3).addSnapshotListener(this, new EventListener<QuerySnapshot>() {
-            @Override
-            public void onEvent(@Nullable QuerySnapshot queryDocumentSnapshots, @Nullable FirebaseFirestoreException e) {
-
-                if (e != null) {
-                    return;
-                }
-
-                String data = "";
-
-                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                    Note note = documentSnapshot.toObject(Note.class);
-                    note.setMarkerId(documentSnapshot.getId());
-
-                    String markerId = note.getMarkerId();
-
-                    String latitude = note.getLatitude();
-                    String longitude = note.getLongitude();
-
-                    data += "ID: " + markerId + "\nLatitude: "+ latitude + "\n Longitude: " + longitude  + "\n\n";
-
-
-
-                }
-
-                textViewData.setText(data);
-
-
-
-            }
-        });
 
     }
-
-
 
 
     public void addNote(View v) {
-        String latitude = lat.toString();
-        String longitude = lng.toString();
 
-        Note note = new Note(latitude, longitude);
+
+        String tagInput = polygonString;
+        String[] tagArray = tagInput.split("\\s*lat/lng:\\s*");
+        List<String> tags = Arrays.asList(tagArray);
+
+
+        Note note = new Note(tags);
 
 
         coordinatesRef.add(note);
+
+
     }
-
-
 
 
     public void loadNotes(View v) {
 
-        coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-                String data ="";
-
-                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-
-                    Note note = documentSnapshot.toObject(Note.class);
-                    note.setMarkerId(documentSnapshot.getId());
-
-                    String markerId = note.getMarkerId();
-
-                    String latitude = note.getLatitude();
-                    String longitude = note.getLongitude();
-
-                    data += "ID: " + markerId + "\nLatitude: "+ latitude + "\n Longitude: " + longitude  + "\n\n";
-                }
-                textViewData.setText(data);
-
-            }
-        });
-
-
 
     }
-
 
 
     @Override
@@ -234,7 +184,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this,R.raw.mapstyle);
+        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
 
         googleMap.setMapStyle(style);
 
@@ -242,16 +192,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng latLng) {
                 //Create Marker Options
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude+ " : "+ latLng.longitude);
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
                 //Create Marker
                 Marker marker = gMap.addMarker(markerOptions);
                 //Add latLng and Marker
-              
+
                 latLngList.add(latLng);
                 markerList.add(marker);
-                lat = latLng.latitude;
-                lng = latLng.longitude;
-
 
 
             }

@@ -1,22 +1,32 @@
 package com.example.gmaps;
 
 import com.google.firebase.firestore.Exclude;
+import com.google.firebase.firestore.GeoPoint;
+import com.google.type.LatLng;
+
+import java.util.List;
 
 public class Note {
 
+
+
     private String markerId;
 
-    private String latitude;
-    private String longitude;
+
+    List<String> tags;
+
+
 
 
     public Note(){
         //public no-arg constructor needed
 
     }
-    public Note(String latitude, String longitude) {
-        this.latitude = latitude;
-        this.longitude = longitude;
+    public Note(List<String> tags) {
+
+
+        this.tags = tags;
+
 
 
     }
@@ -32,15 +42,10 @@ public class Note {
 
 
 
-    public String getLatitude() {
-        return latitude;
+
+    public List<String> getTags() {
+        return tags;
     }
-
-    public String getLongitude() {
-        return longitude;
-    }
-
-
 
 
 }

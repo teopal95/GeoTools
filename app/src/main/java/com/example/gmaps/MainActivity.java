@@ -26,10 +26,14 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
+import com.google.android.gms.maps.model.Dash;
+import com.google.android.gms.maps.model.Dot;
+import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -68,6 +72,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private DocumentReference noteRef = db.collection("Coordinates").document("Marker");
 
 
+
+
     // Initialize Variables
     GoogleMap gMap;
 
@@ -79,9 +85,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
-    List<Marker> markerList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
+    List<LatLng> tagList = new ArrayList<>();
 
+    List<Marker> markerList = new ArrayList<>();
     List<String> tags;
 
 
@@ -112,6 +119,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
+                    polygonList.addAll(latLngList);
+                    polygonString = polygonList.toString();
 
                     latLngList.clear();
                     markerList.clear();
@@ -120,6 +129,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (Exception e) {
                     System.out.println("");
                 }
+
+                polygonList.clear();
 
 
             }
@@ -133,7 +144,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                     latLngList.clear();
                     markerList.clear();
-
+                    polygonList.clear();
                     gMap.clear();
                     polygon.remove();
                 }
@@ -174,16 +185,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     public void loadNotes(View v) {
 
+
+
+
+
+
         coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
             @Override
             public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
 
-                String data = "";
 
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     Note note = documentSnapshot.toObject(Note.class);
 
+                    tagList.clear();
+
                     for (String tags : note.getTags()) {
+
+
 
 
                         String[] latlong = tags.split(",");
@@ -191,23 +210,27 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         double longitude = Double.parseDouble(latlong[1]);
                         LatLng location = new LatLng(latitude, longitude);
 
-                        polygonList.add(location);
-
+                        tagList.add(location);
 
                         MarkerOptions markerOptions = new MarkerOptions().position(location);
                         Marker marker = gMap.addMarker(markerOptions);
+                        PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList).clickable(true);
 
 
-                        PolygonOptions polygonOptions = new PolygonOptions().addAll(polygonList);
+
+
                         polygon = gMap.addPolygon(polygonOptions);
-
 
 
 
                     }
 
+                    
+
+
 
                 }
+
 
 
             }

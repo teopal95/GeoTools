@@ -9,24 +9,20 @@ import java.util.List;
 public class Note {
 
 
-
     private String markerId;
 
 
     List<String> tags;
 
 
-
-
-    public Note(){
+    public Note() {
         //public no-arg constructor needed
 
     }
+
     public Note(List<String> tags) {
 
-
         this.tags = tags;
-
 
 
     }
@@ -39,8 +35,6 @@ public class Note {
     public void setMarkerId(String markerId) {
         this.markerId = markerId;
     }
-
-
 
 
     public List<String> getTags() {

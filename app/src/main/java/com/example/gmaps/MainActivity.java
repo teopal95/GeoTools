@@ -90,6 +90,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     List<Marker> markerList = new ArrayList<>();
     List<String> tags;
+    LatLng location;
 
 
     @Override
@@ -198,39 +199,29 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     Note note = documentSnapshot.toObject(Note.class);
 
-                    tagList.clear();
+                   // tagList.clear();
 
                     for (String tags : note.getTags()) {
-
-
 
 
                         String[] latlong = tags.split(",");
                         double latitude = Double.parseDouble(latlong[0]);
                         double longitude = Double.parseDouble(latlong[1]);
-                        LatLng location = new LatLng(latitude, longitude);
+                        location = new LatLng(latitude, longitude);
 
-                        tagList.add(location);
-
-                        MarkerOptions markerOptions = new MarkerOptions().position(location);
-                        Marker marker = gMap.addMarker(markerOptions);
-                        PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList).clickable(true);
-
-
-
-
-                        polygon = gMap.addPolygon(polygonOptions);
-
-
+                         tagList.add(location);
 
                     }
+                    MarkerOptions markerOptions = new MarkerOptions().position(location);
+                    Marker marker = gMap.addMarker(markerOptions);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
+                    polygon = gMap.addPolygon(polygonOptions);
 
-                    
+                    tagList.clear();
 
 
 
                 }
-
 
 
             }

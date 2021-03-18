@@ -79,8 +79,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
-    List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
+    List<LatLng> polygonList = new ArrayList<>();
+
     List<String> tags;
 
 
@@ -111,8 +112,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
-                    polygonList.addAll(latLngList);
-                    polygonString = polygonList.toString();
 
                     latLngList.clear();
                     markerList.clear();
@@ -121,8 +120,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 } catch (Exception e) {
                     System.out.println("");
                 }
-
-                polygonList.clear();
 
 
             }
@@ -136,6 +133,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                     latLngList.clear();
                     markerList.clear();
+
                     gMap.clear();
                     polygon.remove();
                 }
@@ -158,8 +156,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public void addNote(View v) {
 
 
-        String tagInput = polygonString;
-        String[] tagArray = tagInput.split("\\s*lat/lng:\\s*");
+        String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
+                .replace(")", "").replace("]", "");
+        ;
+        String[] tagArray = tagInput.split(",[ ]");
         List<String> tags = Arrays.asList(tagArray);
 
 
@@ -173,6 +173,45 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     public void loadNotes(View v) {
+
+        coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
+            @Override
+            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
+
+                String data = "";
+
+                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
+                    Note note = documentSnapshot.toObject(Note.class);
+
+                    for (String tags : note.getTags()) {
+
+
+                        String[] latlong = tags.split(",");
+                        double latitude = Double.parseDouble(latlong[0]);
+                        double longitude = Double.parseDouble(latlong[1]);
+                        LatLng location = new LatLng(latitude, longitude);
+
+                        polygonList.add(location);
+
+
+                        MarkerOptions markerOptions = new MarkerOptions().position(location);
+                        Marker marker = gMap.addMarker(markerOptions);
+
+
+                        PolygonOptions polygonOptions = new PolygonOptions().addAll(polygonList);
+                        polygon = gMap.addPolygon(polygonOptions);
+
+
+
+
+                    }
+
+
+                }
+
+
+            }
+        });
 
 
     }

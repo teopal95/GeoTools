@@ -199,7 +199,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     Note note = documentSnapshot.toObject(Note.class);
 
-                   // tagList.clear();
+                    tagList.clear();
 
                     for (String tags : note.getTags()) {
 
@@ -212,12 +212,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                          tagList.add(location);
 
                     }
-                    MarkerOptions markerOptions = new MarkerOptions().position(location);
-                    Marker marker = gMap.addMarker(markerOptions);
+
+
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
                     polygon = gMap.addPolygon(polygonOptions);
+                    
 
-                    tagList.clear();
+
 
 
 

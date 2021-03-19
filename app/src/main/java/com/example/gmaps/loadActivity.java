@@ -2,6 +2,7 @@ package com.example.gmaps;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -31,9 +32,7 @@ public class loadActivity extends AppCompatActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
-
-    private RecyclerView mRecyclerView;
-    private FirestoreRecyclerAdapter adapter;
+    private NoteAdapter adapter;
 
 
     @Override
@@ -41,62 +40,37 @@ public class loadActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
 
-        mRecyclerView = findViewById(R.id.recycler_view);
-
-        Query query = db.collection("Coordinates");
-
-
-
-        FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>().setQuery(query,Note.class)
-                .build();
-
-         adapter = new FirestoreRecyclerAdapter<Note, mViewHolder>(options) {
-            @NonNull
-            @Override
-            public mViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-                View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.row,parent,false);
-                return new mViewHolder(view);
-
-            }
-
-            @Override
-            protected void onBindViewHolder(@NonNull mViewHolder holder, int position, @NonNull Note model) {
-
-                holder.textView.setText("Coordinates: " + model.getTags().toString());
-
-
-
-
-
-
-            }
-        };
-
-        mRecyclerView.setHasFixedSize(true);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-        mRecyclerView.setAdapter(adapter);
-
-
-
-
+        setUpRecyclerView();
 
 
     }
 
+    private void setUpRecyclerView() {
+        Query query = coordinatesRef;
+        FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>()
+                .setQuery(query,Note.class).build();
 
-    private class mViewHolder extends RecyclerView.ViewHolder {
+        adapter = new NoteAdapter(options);
 
-        private TextView textView;
+        RecyclerView recyclerView = findViewById(R.id.recycler_view);
+        recyclerView.setHasFixedSize(true);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this));
+        recyclerView.setAdapter(adapter);
 
+        new ItemTouchHelper(new ItemTouchHelper.SimpleCallback(0,
+                ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(@NonNull RecyclerView recyclerView, @NonNull RecyclerView.ViewHolder viewHolder, @NonNull RecyclerView.ViewHolder target) {
+                return false;
+            }
 
+            @Override
+            public void onSwiped(@NonNull RecyclerView.ViewHolder viewHolder, int direction) {
 
-        public mViewHolder(@NonNull View itemView) {
-            super(itemView);
+                adapter.deleteItem(viewHolder.getAdapterPosition());
 
-            textView = itemView.findViewById(R.id.row);
-
-
-        }
+            }
+        }).attachToRecyclerView(recyclerView);
     }
 
     @Override
@@ -108,8 +82,7 @@ public class loadActivity extends AppCompatActivity {
     @Override
     protected void onStop() {
         super.onStop();
-        adapter.stopListening();
+        adapter.startListening();
     }
 }
-
 

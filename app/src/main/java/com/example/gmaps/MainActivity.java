@@ -5,6 +5,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
 
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.location.Location;
@@ -68,8 +69,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
-    private CollectionReference polygonRef = db.collection("Polygon");
-    private DocumentReference noteRef = db.collection("Coordinates").document("Marker");
+
+
+    private Button btnOpen;
 
 
 
@@ -98,7 +100,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //FIREBASE
+        btnOpen = (Button) findViewById(R.id.btnOpen);
+        btnOpen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                openActivity();
+            }
+        });
 
         textViewData = findViewById(R.id.text_view_data);
 
@@ -156,11 +164,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
+
+
     }
 
     @Override
     protected void onStart() {
         super.onStart();
+
+    }
+    public void openActivity(){
+        Intent intent = new Intent(this, loadActivity.class);
+        startActivity(intent);
 
     }
 
@@ -199,7 +214,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     Note note = documentSnapshot.toObject(Note.class);
 
-                    tagList.clear();
+                   // tagList.clear();
 
                     for (String tags : note.getTags()) {
 
@@ -212,13 +227,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                          tagList.add(location);
 
                     }
-
-
+                   
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
                     polygon = gMap.addPolygon(polygonOptions);
-                    
 
-
+                    tagList.clear();
 
 
 

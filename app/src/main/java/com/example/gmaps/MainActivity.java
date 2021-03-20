@@ -104,7 +104,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                openActivity();
+                openActivityLoad();
             }
         });
 
@@ -173,7 +173,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
     }
-    public void openActivity(){
+    public void openActivityLoad(){
         Intent intent = new Intent(this, loadActivity.class);
         startActivity(intent);
 
@@ -214,7 +214,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
                     Note note = documentSnapshot.toObject(Note.class);
 
-                   // tagList.clear();
+
 
                     for (String tags : note.getTags()) {
 

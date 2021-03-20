@@ -20,6 +20,7 @@ public class Note {
 
     }
 
+
     public Note(List<String> tags) {
 
         this.tags = tags;

@@ -24,6 +24,7 @@ import android.widget.Toast;
 import com.google.android.gms.maps.CameraUpdate;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
@@ -55,6 +56,7 @@ import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -71,14 +73,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
 
+
+
+
+
     private Button btnOpen;
 
 
 
 
     // Initialize Variables
-    GoogleMap gMap;
 
+
+    public static GoogleMap gMap;
 
     String polygonString;
 
@@ -95,10 +102,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     LatLng location;
 
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
+
+
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
         btnOpen.setOnClickListener(new View.OnClickListener() {
@@ -118,6 +131,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         //Initialize SupportMapFragment
         SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(this::onMapReady);
+
+
+
+
 
 
         btDraw.setOnClickListener(new View.OnClickListener() {
@@ -164,8 +181,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         });
 
 
-
-
     }
 
     @Override
@@ -173,11 +188,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onStart();
 
     }
-    public void openActivityLoad(){
+
+    public void openActivityLoad() {
         Intent intent = new Intent(this, loadActivity.class);
         startActivity(intent);
 
     }
+
 
 
     public void addNote(View v) {
@@ -199,11 +216,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
+
     public void loadNotes(View v) {
-
-
-
-
 
 
         coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
@@ -215,7 +229,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Note note = documentSnapshot.toObject(Note.class);
 
 
-
                     for (String tags : note.getTags()) {
 
 
@@ -224,15 +237,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         double longitude = Double.parseDouble(latlong[1]);
                         location = new LatLng(latitude, longitude);
 
-                         tagList.add(location);
+                        tagList.add(location);
 
                     }
-                   
+
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
                     polygon = gMap.addPolygon(polygonOptions);
 
                     tagList.clear();
-
 
 
                 }
@@ -251,9 +263,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
-        MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
 
-        googleMap.setMapStyle(style);
+
+
+
+        //  MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
+      //  googleMap.setMapStyle(style);
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override

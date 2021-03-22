@@ -3,11 +3,15 @@ package com.example.gmaps;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.recyclerview.widget.ItemTouchHelper;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.graphics.Camera;
+import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,8 +22,11 @@ import android.widget.Toast;
 
 import com.firebase.ui.firestore.FirestoreRecyclerAdapter;
 import com.firebase.ui.firestore.FirestoreRecyclerOptions;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -34,11 +41,10 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 
-
 import java.util.ArrayList;
 import java.util.List;
 
-public class loadActivity extends MainActivity implements OnMapReadyCallback  {
+public class loadActivity extends FragmentActivity {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
@@ -49,7 +55,6 @@ public class loadActivity extends MainActivity implements OnMapReadyCallback  {
     List<LatLng> loadList = new ArrayList<>();
 
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -57,8 +62,8 @@ public class loadActivity extends MainActivity implements OnMapReadyCallback  {
 
         setUpRecyclerView();
 
-
     }
+
 
     private void setUpRecyclerView() {
         Query query = coordinatesRef;
@@ -89,33 +94,29 @@ public class loadActivity extends MainActivity implements OnMapReadyCallback  {
 
         adapter.setOnItemClickListener(new NoteAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick (DocumentSnapshot documentSnapshot, int position) {
+            public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
                 Note note = documentSnapshot.toObject(Note.class);
                 String id = documentSnapshot.getId();
-                String path = documentSnapshot.getReference().getPath();
 
 
                 for (String tags : note.getTags()) {
-
 
                     String[] latlong = tags.split(",");
                     double latitude = Double.parseDouble(latlong[0]);
                     double longitude = Double.parseDouble(latlong[1]);
                     loc = new LatLng(latitude, longitude);
 
-
                     loadList.add(loc);
-
-
-                  Toast.makeText(loadActivity.this, "ID: " + id + " List: " + loadList, Toast.LENGTH_SHORT).show();
 
 
                 }
 
                 PolygonOptions polygonOptions = new PolygonOptions().addAll(loadList);
-                poly = gMap.addPolygon(polygonOptions);
+                poly = MainActivity.gMap.addPolygon(polygonOptions);
 
                 loadList.clear();
+                openActivityMain();
+                Toast.makeText(loadActivity.this, "Opening Land:" +id, Toast.LENGTH_SHORT).show();
 
 
             }
@@ -136,10 +137,14 @@ public class loadActivity extends MainActivity implements OnMapReadyCallback  {
         adapter.startListening();
     }
 
+
     public void openActivityMain() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        Intent openMainActivity = new Intent(this, MainActivity.class);
+        openMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivityIfNeeded(openMainActivity, 0);
 
     }
+
+
 }
 

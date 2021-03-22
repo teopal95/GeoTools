@@ -44,7 +44,7 @@ import com.google.firebase.firestore.QuerySnapshot;
 import java.util.ArrayList;
 import java.util.List;
 
-public class loadActivity extends FragmentActivity  {
+public class loadActivity extends FragmentActivity {
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
@@ -60,10 +60,7 @@ public class loadActivity extends FragmentActivity  {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
 
-
-
         setUpRecyclerView();
-
 
     }
 
@@ -100,35 +97,26 @@ public class loadActivity extends FragmentActivity  {
             public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
                 Note note = documentSnapshot.toObject(Note.class);
                 String id = documentSnapshot.getId();
-                String path = documentSnapshot.getReference().getPath();
 
 
                 for (String tags : note.getTags()) {
-
 
                     String[] latlong = tags.split(",");
                     double latitude = Double.parseDouble(latlong[0]);
                     double longitude = Double.parseDouble(latlong[1]);
                     loc = new LatLng(latitude, longitude);
 
-
                     loadList.add(loc);
 
 
-                    Toast.makeText(loadActivity.this, "ID: " + id + " List: " + loadList, Toast.LENGTH_SHORT).show();
-
                 }
-
-
-
-
 
                 PolygonOptions polygonOptions = new PolygonOptions().addAll(loadList);
                 poly = MainActivity.gMap.addPolygon(polygonOptions);
 
-
                 loadList.clear();
-
+                openActivityMain();
+                Toast.makeText(loadActivity.this, "Opening Land:" +id, Toast.LENGTH_SHORT).show();
 
 
             }
@@ -150,13 +138,12 @@ public class loadActivity extends FragmentActivity  {
     }
 
 
-
     public void openActivityMain() {
-        Intent intent = new Intent(this, MainActivity.class);
-        startActivity(intent);
+        Intent openMainActivity = new Intent(this, MainActivity.class);
+        openMainActivity.setFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
+        startActivityIfNeeded(openMainActivity, 0);
 
     }
-
 
 
 }

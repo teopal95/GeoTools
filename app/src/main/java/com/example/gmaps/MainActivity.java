@@ -72,45 +72,26 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
-
-
-
-
-
     private Button btnOpen;
 
-
-
-
     // Initialize Variables
-
 
     public static GoogleMap gMap;
 
     String polygonString;
-
-
     Button btDraw, btClear;
-
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
     List<LatLng> tagList = new ArrayList<>();
-
     List<Marker> markerList = new ArrayList<>();
-    List<String> tags;
     LatLng location;
-
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
-
-
-
 
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
@@ -133,10 +114,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         supportMapFragment.getMapAsync(this::onMapReady);
 
 
-
-
-
-
         btDraw.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -153,7 +130,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
                 } catch (Exception e) {
-                    System.out.println("");
+                    Toast.makeText(MainActivity.this, "Select your Land", Toast.LENGTH_SHORT).show();
+
                 }
 
                 polygonList.clear();
@@ -166,17 +144,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
                 //Clear all
-                if (polygon != null) {
+                try {
 
                     latLngList.clear();
                     markerList.clear();
                     polygonList.clear();
                     gMap.clear();
                     polygon.remove();
+
+                } catch (Exception e) {
+
+
                 }
-                ;
-
-
             }
         });
 
@@ -196,25 +175,28 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-
     public void addNote(View v) {
 
-
-        String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
-                .replace(")", "").replace("]", "");
-        ;
-        String[] tagArray = tagInput.split(",[ ]");
-        List<String> tags = Arrays.asList(tagArray);
+        try {
 
 
-        Note note = new Note(tags);
+            String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
+                    .replace(")", "").replace("]", "");
+            ;
+            String[] tagArray = tagInput.split(",[ ]");
+            List<String> tags = Arrays.asList(tagArray);
 
+            Note note = new Note(tags);
 
-        coordinatesRef.add(note);
+            coordinatesRef.add(note);
+
+            Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
+        }
 
 
     }
-
 
 
     public void loadNotes(View v) {
@@ -264,11 +246,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
-
-
-
         //  MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
-      //  googleMap.setMapStyle(style);
+        //  googleMap.setMapStyle(style);
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override

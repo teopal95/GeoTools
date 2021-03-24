@@ -23,7 +23,10 @@ public class NoteAdapter extends FirestoreRecyclerAdapter<Note, NoteAdapter.Note
     @Override
     protected void onBindViewHolder(@NonNull NoteHolder holder, int position, @NonNull Note model) {
 
-        holder.textView.setText("Coordinates: " + model.getTags().toString());
+        DocumentSnapshot snapshot = getSnapshots().getSnapshot(holder.getAdapterPosition());
+        String id = snapshot.getId();
+
+        holder.textView.setText("Land Name: "+id);
 
     }
 

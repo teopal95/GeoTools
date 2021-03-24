@@ -9,7 +9,9 @@ import java.util.List;
 public class Note {
 
 
+
     private String markerId;
+    private String nameId;
 
 
     List<String> tags;
@@ -42,5 +44,8 @@ public class Note {
         return tags;
     }
 
+    public String getNameId() {
+        return nameId;
+    }
 
 }

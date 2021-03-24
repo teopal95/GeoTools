@@ -72,11 +72,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
+
     private Button btnOpen;
 
     // Initialize Variables
 
     public static GoogleMap gMap;
+
+    CheckBox checkBox;
+    EditText editText;
 
     String polygonString;
     Button btDraw, btClear;
@@ -95,14 +99,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
+        checkBox = findViewById(R.id.checkbox);
+        editText = findViewById(R.id.editText);
+
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openActivityLoad();
             }
         });
-
-        textViewData = findViewById(R.id.text_view_data);
 
 
         //Assign Variables
@@ -175,7 +180,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void addNote(View v) {
+    public void saveNote(View v) {
 
         try {
 
@@ -188,52 +193,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             Note note = new Note(tags);
 
-            coordinatesRef.add(note);
+            String name = editText.getText().toString();
+
+
+            db.collection("Coordinates").document("" + name).set(note);
+
 
             Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
+
+
         } catch (Exception e) {
             Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
         }
-
-
-    }
-
-
-    public void loadNotes(View v) {
-
-
-        coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-
-                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                    Note note = documentSnapshot.toObject(Note.class);
-
-
-                    for (String tags : note.getTags()) {
-
-
-                        String[] latlong = tags.split(",");
-                        double latitude = Double.parseDouble(latlong[0]);
-                        double longitude = Double.parseDouble(latlong[1]);
-                        location = new LatLng(latitude, longitude);
-
-                        tagList.add(location);
-
-                    }
-
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
-                    polygon = gMap.addPolygon(polygonOptions);
-
-                    tagList.clear();
-
-
-                }
-
-
-            }
-        });
 
 
     }

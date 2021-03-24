@@ -17,6 +17,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -49,10 +50,14 @@ public class loadActivity extends FragmentActivity {
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
+
+
+
     private NoteAdapter adapter;
     LatLng loc;
     Polygon poly = null;
     List<LatLng> loadList = new ArrayList<>();
+
 
 
     @Override
@@ -60,12 +65,14 @@ public class loadActivity extends FragmentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_load);
 
+
         setUpRecyclerView();
 
     }
 
 
     private void setUpRecyclerView() {
+
         Query query = coordinatesRef;
         FirestoreRecyclerOptions<Note> options = new FirestoreRecyclerOptions.Builder<Note>()
                 .setQuery(query, Note.class).build();
@@ -96,6 +103,7 @@ public class loadActivity extends FragmentActivity {
             @Override
             public void onItemClick(DocumentSnapshot documentSnapshot, int position) {
                 Note note = documentSnapshot.toObject(Note.class);
+
                 String id = documentSnapshot.getId();
 
 

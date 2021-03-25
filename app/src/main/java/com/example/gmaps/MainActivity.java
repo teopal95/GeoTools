@@ -67,7 +67,7 @@ import java.util.Map;
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
 
-    private TextView textViewData;
+
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
@@ -78,6 +78,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     // Initialize Variables
 
     public static GoogleMap gMap;
+
+
 
     CheckBox checkBox;
     EditText editText;
@@ -102,9 +104,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         checkBox = findViewById(R.id.checkbox);
         editText = findViewById(R.id.editText);
 
+
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+
+
                 openActivityLoad();
             }
         });
@@ -193,10 +199,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             Note note = new Note(tags);
 
-            String name = editText.getText().toString();
+            String docName = editText.getText().toString();
 
 
-            db.collection("Coordinates").document("" + name).set(note);
+
+            db.collection("Coordinates").document("" + docName).set(note);
 
 
             Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();

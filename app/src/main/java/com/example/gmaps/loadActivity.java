@@ -66,6 +66,9 @@ public class loadActivity extends FragmentActivity {
         setContentView(R.layout.activity_load);
 
 
+
+
+
         setUpRecyclerView();
 
     }

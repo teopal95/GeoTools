@@ -22,12 +22,6 @@
       android:layout_alignParentBottom="true"
       android:background="@android:color/white">
 
-<CheckBox
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:id="@+id/checkbox"
-    android:text="Megalo Ktima" />
-
        <LinearLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"

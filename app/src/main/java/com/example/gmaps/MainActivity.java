@@ -82,6 +82,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
 
+
+
     CheckBox checkBox;
     EditText editText;
 
@@ -132,7 +134,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
 
                 try {
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).geodesic(true);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
                     bigpolygonList.addAll(latLngList);
@@ -238,16 +240,33 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                //Create Marker Options
-                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
-                //Create Marker
-                Marker marker = gMap.addMarker(markerOptions);
-                //Add latLng and Marker
-                boolean contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
-                Toast.makeText(MainActivity.this, "Inside polygon?"+contain, Toast.LENGTH_SHORT).show();
 
+                MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
+
+
+               if (bigpolygonList.isEmpty()){
+
+                   Marker marker = gMap.addMarker(markerOptions);
+                   latLngList.add(latLng);
+                   markerList.add(marker);
+               }else {
+                  boolean contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
+                   if (contain==true){
+                      Marker marker = gMap.addMarker(markerOptions);
+                      latLngList.add(latLng);
+                       markerList.add(marker);
+                   }
+                   else {
+
+                       Toast.makeText(MainActivity.this, "Please draw inside the polygon", Toast.LENGTH_SHORT).show();
+                   }
+               }
+
+           /*     Marker marker = gMap.addMarker(markerOptions);
+                contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
+                Toast.makeText(MainActivity.this, "Inside polygon?"+contain, Toast.LENGTH_SHORT).show();
                 latLngList.add(latLng);
-                markerList.add(marker);
+                markerList.add(marker); */
 
 
             }

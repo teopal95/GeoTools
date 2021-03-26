@@ -55,6 +55,7 @@ import com.google.firebase.firestore.Query;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 import com.google.firebase.firestore.QuerySnapshot;
 import com.google.firebase.firestore.SetOptions;
+import com.google.maps.android.PolyUtil;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -91,6 +92,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     List<LatLng> polygonList = new ArrayList<>();
     List<LatLng> tagList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
+    List<LatLng> bigpolygonList = new ArrayList<>();
     LatLng location;
 
 
@@ -130,11 +132,16 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
 
                 try {
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).geodesic(true);
                     polygon = gMap.addPolygon(polygonOptions);
 
+                    bigpolygonList.addAll(latLngList);
+
+                    
                     polygonList.addAll(latLngList);
                     polygonString = polygonList.toString();
+
+
 
                     latLngList.clear();
                     markerList.clear();
@@ -172,6 +179,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
 
     @Override
     protected void onStart() {
@@ -235,6 +243,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 //Create Marker
                 Marker marker = gMap.addMarker(markerOptions);
                 //Add latLng and Marker
+                boolean contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
+                Toast.makeText(MainActivity.this, "Inside polygon?"+contain, Toast.LENGTH_SHORT).show();
 
                 latLngList.add(latLng);
                 markerList.add(marker);

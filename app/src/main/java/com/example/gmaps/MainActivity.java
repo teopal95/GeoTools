@@ -1,68 +1,32 @@
 package com.example.gmaps;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.fragment.app.FragmentActivity;
-
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
-import android.widget.CompoundButton;
 import android.widget.EditText;
-import android.widget.GridLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.maps.CameraUpdate;
-import com.google.android.gms.maps.CameraUpdateFactory;
+import androidx.fragment.app.FragmentActivity;
+
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.MapView;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
-import com.google.android.gms.maps.internal.ICameraUpdateFactoryDelegate;
-import com.google.android.gms.maps.model.Dash;
-import com.google.android.gms.maps.model.Dot;
-import com.google.android.gms.maps.model.Gap;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.PatternItem;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.tasks.OnFailureListener;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
-import com.google.android.gms.tasks.Tasks;
 import com.google.firebase.firestore.CollectionReference;
-import com.google.firebase.firestore.DocumentReference;
-import com.google.firebase.firestore.DocumentSnapshot;
-import com.google.firebase.firestore.EventListener;
-import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.firebase.firestore.FirebaseFirestoreException;
-import com.google.firebase.firestore.GeoPoint;
-import com.google.firebase.firestore.ListenerRegistration;
-import com.google.firebase.firestore.Query;
-import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
-import com.google.firebase.firestore.SetOptions;
+import com.google.maps.android.geojson.GeoJsonLayer;
+import com.google.maps.android.geojson.GeoJsonPointStyle;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -72,11 +36,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
+
     private Button btnOpen;
 
     // Initialize Variables
 
     public static GoogleMap gMap;
+
+    CheckBox checkBox;
+    EditText editText;
 
     String polygonString;
     Button btDraw, btClear;
@@ -95,14 +63,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
+        checkBox = findViewById(R.id.checkbox);
+        editText = findViewById(R.id.editText);
+
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 openActivityLoad();
             }
         });
-
-        textViewData = findViewById(R.id.text_view_data);
 
 
         //Assign Variables
@@ -119,7 +88,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             public void onClick(View v) {
 
                 try {
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).geodesic(true);
                     polygon = gMap.addPolygon(polygonOptions);
 
                     polygonList.addAll(latLngList);
@@ -175,7 +144,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
 
-    public void addNote(View v) {
+    public void saveNote(View v) {
 
         try {
 
@@ -188,52 +157,18 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             Note note = new Note(tags);
 
-            coordinatesRef.add(note);
+            String name = editText.getText().toString();
+
+
+            db.collection("Coordinates").document("" + name).set(note);
+
 
             Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
+
+
         } catch (Exception e) {
             Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
         }
-
-
-    }
-
-
-    public void loadNotes(View v) {
-
-
-        coordinatesRef.get().addOnSuccessListener(new OnSuccessListener<QuerySnapshot>() {
-            @Override
-            public void onSuccess(QuerySnapshot queryDocumentSnapshots) {
-
-
-                for (QueryDocumentSnapshot documentSnapshot : queryDocumentSnapshots) {
-                    Note note = documentSnapshot.toObject(Note.class);
-
-
-                    for (String tags : note.getTags()) {
-
-
-                        String[] latlong = tags.split(",");
-                        double latitude = Double.parseDouble(latlong[0]);
-                        double longitude = Double.parseDouble(latlong[1]);
-                        location = new LatLng(latitude, longitude);
-
-                        tagList.add(location);
-
-                    }
-
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(tagList);
-                    polygon = gMap.addPolygon(polygonOptions);
-
-                    tagList.clear();
-
-
-                }
-
-
-            }
-        });
 
 
     }
@@ -245,9 +180,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
+        try{
+            GeoJsonLayer Layer = new GeoJsonLayer(gMap, R.raw.map, this);
+            GeoJsonPointStyle pointStyle = Layer.getDefaultPointStyle();
+            Layer.addLayerToMap();
+        }
+        catch (Exception e){
+            System.out.println("");
 
-        //  MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
-        //  googleMap.setMapStyle(style);
+        }
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override

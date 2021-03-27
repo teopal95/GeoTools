@@ -130,6 +130,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     polygonList.clear();
                     gMap.clear();
                     polygon.remove();
+                    bigpolygonList.clear();
 
                 } catch (Exception e) {
 
@@ -191,6 +192,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+
+
+
 
 
         //  MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);

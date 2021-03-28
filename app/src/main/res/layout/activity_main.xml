@@ -22,6 +22,12 @@
       android:layout_alignParentBottom="true"
       android:background="@android:color/white">
 
+       <CheckBox
+           android:layout_width="wrap_content"
+           android:layout_height="wrap_content"
+           android:text="Big Farm"
+           android:id="@+id/checkbox" />
+
        <LinearLayout
            android:layout_width="match_parent"
            android:layout_height="wrap_content"

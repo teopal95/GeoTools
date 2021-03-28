@@ -8,8 +8,6 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.fragment.app.FragmentActivity;
-
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -25,6 +23,8 @@ import com.google.maps.android.PolyUtil;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import androidx.fragment.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -98,7 +98,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
+                    if (checkBox.isChecked())
+                    {
+                        bigpolygonList.clear();
                     bigpolygonList.addAll(latLngList);
+                    }
 
                     polygonList.addAll(latLngList);
                     polygonString = polygonList.toString();

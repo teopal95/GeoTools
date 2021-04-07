@@ -2,6 +2,7 @@ package com.example.gmaps;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -19,7 +20,14 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.android.data.geojson.GeoJsonLayer;
+import com.google.maps.android.data.geojson.GeoJsonPolygonStyle;
+import com.google.maps.android.data.kml.KmlLayer;
 
+import org.json.JSONException;
+import org.xmlpull.v1.XmlPullParserException;
+
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -27,8 +35,6 @@ import java.util.List;
 import androidx.fragment.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
-
-
 
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -42,14 +48,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     public static GoogleMap gMap;
 
 
-
-
-
     CheckBox checkBox;
     EditText editText;
 
     String polygonString;
-    Button btDraw, btClear;
+    Button btDraw, btClear, btnImport;
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
@@ -66,6 +69,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
+        btnImport = findViewById(R.id.btnImport);
+
+
         checkBox = findViewById(R.id.checkbox);
         editText = findViewById(R.id.editText);
 
@@ -73,7 +79,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         btnOpen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
 
 
                 openActivityLoad();
@@ -85,9 +90,41 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         btDraw = findViewById(R.id.bt_draw);
         btClear = findViewById(R.id.bt_clear);
 
+
         //Initialize SupportMapFragment
         SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(this::onMapReady);
+
+        btnImport.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
+                    kmlLayer.addLayerToMap();
+
+                } catch (IOException e){
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                }catch (XmlPullParserException e) {
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                }
+
+
+                try {
+                    GeoJsonLayer layer = new GeoJsonLayer(gMap, R.raw.athens,getApplicationContext());
+                    layer.addLayerToMap();
+
+                } catch (IOException e) {
+                    Toast.makeText(MainActivity.this, "could not read file", Toast.LENGTH_SHORT).show();
+                    
+
+                } catch (JSONException e) {
+                    Toast.makeText(MainActivity.this, "could not conver file", Toast.LENGTH_SHORT).show();
+
+                }
+
+            }
+        });
 
 
         btDraw.setOnClickListener(new View.OnClickListener() {
@@ -98,10 +135,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
 
-                    if (checkBox.isChecked())
-                    {
+                    if (checkBox.isChecked()) {
                         bigpolygonList.clear();
-                    bigpolygonList.addAll(latLngList);
+                        bigpolygonList.addAll(latLngList);
                     }
 
                     polygonList.addAll(latLngList);
@@ -176,7 +212,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             String docName = editText.getText().toString();
 
 
-
             db.collection("Coordinates").document("" + docName).set(note);
 
 
@@ -198,12 +233,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
-
-
-
-        //  MapStyleOptions style = MapStyleOptions.loadRawResourceStyle(this, R.raw.mapstyle);
-        //  googleMap.setMapStyle(style);
-
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -211,23 +240,22 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
 
 
-               if (bigpolygonList.isEmpty()){
+                if (bigpolygonList.isEmpty()) {
 
-                   Marker marker = gMap.addMarker(markerOptions);
-                   latLngList.add(latLng);
-                   markerList.add(marker);
-               }else {
-                  boolean contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
-                   if (contain==true){
-                      Marker marker = gMap.addMarker(markerOptions);
-                      latLngList.add(latLng);
-                       markerList.add(marker);
-                   }
-                   else {
+                    Marker marker = gMap.addMarker(markerOptions);
+                    latLngList.add(latLng);
+                    markerList.add(marker);
+                } else {
+                    boolean contain = PolyUtil.containsLocation(latLng.latitude, latLng.longitude, bigpolygonList, true);
+                    if (contain == true) {
+                        Marker marker = gMap.addMarker(markerOptions);
+                        latLngList.add(latLng);
+                        markerList.add(marker);
+                    } else {
 
-                       Toast.makeText(MainActivity.this, "Please draw inside the polygon", Toast.LENGTH_SHORT).show();
-                   }
-               }
+                        Toast.makeText(MainActivity.this, "Please draw inside the polygon", Toast.LENGTH_SHORT).show();
+                    }
+                }
 
            /*     Marker marker = gMap.addMarker(markerOptions);
                 contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);

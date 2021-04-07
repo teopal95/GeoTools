@@ -56,6 +56,11 @@
            android:layout_width="match_parent"
            android:layout_height="match_parent"
            android:text="Open" />
+       <Button
+           android:id="@+id/btnImport"
+           android:layout_width="match_parent"
+           android:layout_height="match_parent"
+           android:text="Import" />
 
 
 
@@ -64,7 +69,8 @@
 
 
 
-      <LinearLayout
+
+       <LinearLayout
           android:layout_width="match_parent"
           android:layout_height="wrap_content"
          android:weightSum="2"

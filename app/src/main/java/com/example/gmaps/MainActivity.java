@@ -1,7 +1,9 @@
 package com.example.gmaps;
 
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -17,6 +19,8 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
@@ -26,12 +30,21 @@ import com.google.maps.android.data.kml.KmlLayer;
 
 import org.json.JSONException;
 import org.xmlpull.v1.XmlPullParserException;
+import org.xmlpull.v1.XmlPullParserFactory;
+import org.xmlpull.v1.XmlSerializer;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import androidx.annotation.Nullable;
 import androidx.fragment.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
@@ -40,12 +53,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
+    FirebaseDatabase rootNote;
+    DatabaseReference reference;
+
+
 
     private Button btnOpen;
+
+    private static final String FILE_NAME = "example.kml";
 
     // Initialize Variables
 
     public static GoogleMap gMap;
+    private static int RESULT_LOAD_IMAGE = 1;
+
 
 
     CheckBox checkBox;
@@ -60,7 +81,33 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
     LatLng location;
+    Intent myFileIntent;
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode){
+            case 10:
+                if (resultCode==RESULT_OK)
+                {
+
+                    try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
+                        kmlLayer.addLayerToMap();
+
+                    } catch (IOException e){
+                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                    }catch (XmlPullParserException e) {
+                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                    }
+
+
+                }
+                break;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -98,6 +145,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         btnImport.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+               myFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
+               myFileIntent.setType("*/*");
+               startActivityForResult(myFileIntent,10);
+
+                //LAYERS
+
                 try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
                     kmlLayer.addLayerToMap();
 
@@ -119,11 +173,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     
 
                 } catch (JSONException e) {
-                    Toast.makeText(MainActivity.this, "could not conver file", Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "could not convert file", Toast.LENGTH_SHORT).show();
 
                 }
 
             }
+
         });
 
 
@@ -156,7 +211,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 polygonList.clear();
 
 
+
+
+
+
+
+                 //   rootNote = FirebaseDatabase.getInstance();
+                 //   reference = rootNote.getReference("users");
+                  //  reference.setValue(""+fileOutputStream);
+
+
+
+
+
+
+
+
             }
+
         });
 
         btClear.setOnClickListener(new View.OnClickListener() {

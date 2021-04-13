@@ -35,13 +35,16 @@ import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.StringWriter;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -61,6 +64,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     private Button btnOpen;
+    private XmlSerializer xmlSerializer;
+
 
     private static final String FILE_NAME = "example.kml";
 
@@ -90,7 +95,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        
+
 
         if (requestCode == PICK_FILE)
         {
@@ -98,8 +103,20 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             {
                 Uri uri = data.getData();
                 String fileContent = readTextFile(uri);
-                Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
+             //   Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
+                InputStream is = new ByteArrayInputStream( fileContent.getBytes() );
 
+
+                try { KmlLayer kmlLayer = new KmlLayer(gMap,is,getApplicationContext());
+                    kmlLayer.addLayerToMap();
+
+                } catch (IOException e){
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                }catch (XmlPullParserException e) {
+                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                }
 
 
             }

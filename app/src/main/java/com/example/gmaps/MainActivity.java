@@ -2,6 +2,7 @@ package com.example.gmaps;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -39,6 +40,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -53,8 +55,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
-    FirebaseDatabase rootNote;
-    DatabaseReference reference;
+  //  FirebaseDatabase rootNote;
+  //  DatabaseReference reference;
 
 
 
@@ -65,7 +67,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     // Initialize Variables
 
     public static GoogleMap gMap;
-    private static int RESULT_LOAD_IMAGE = 1;
+    public static int PICK_FILE = 1;
+
 
 
 
@@ -80,33 +83,28 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     List<LatLng> tagList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
-    LatLng location;
-    Intent myFileIntent;
+
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode){
-            case 10:
-                if (resultCode==RESULT_OK)
-                {
 
-                    try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
-                        kmlLayer.addLayerToMap();
+        
 
-                    } catch (IOException e){
-                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-                    }catch (XmlPullParserException e) {
-                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-                    }
+        if (requestCode == PICK_FILE)
+        {
+            if (resultCode == RESULT_OK)
+            {
+                Uri uri = data.getData();
+                String fileContent = readTextFile(uri);
+                Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
 
 
-                }
-                break;
+
+            }
         }
+
     }
 
     @Override
@@ -146,12 +144,14 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onClick(View v) {
 
-               myFileIntent = new Intent(Intent.ACTION_GET_CONTENT);
-               myFileIntent.setType("*/*");
-               startActivityForResult(myFileIntent,10);
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                startActivityForResult(intent, PICK_FILE);
+
+
 
                 //LAYERS
-
+/*
                 try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
                     kmlLayer.addLayerToMap();
 
@@ -176,7 +176,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     Toast.makeText(MainActivity.this, "could not convert file", Toast.LENGTH_SHORT).show();
 
                 }
-
+*/
             }
 
         });
@@ -265,6 +265,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         Intent intent = new Intent(this, loadActivity.class);
         startActivity(intent);
 
+    }
+    private String readTextFile(Uri uri)
+    {
+        BufferedReader reader = null;
+        StringBuilder builder = new StringBuilder();
+        try
+        {
+            reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(uri)));
+
+            String line = "";
+            while ((line = reader.readLine()) != null)
+            {
+                builder.append(line);
+            }
+            reader.close();
+        }
+        catch (IOException e) {e.printStackTrace();}
+        return builder.toString();
     }
 
 

@@ -1,17 +1,25 @@
 package com.example.gmaps;
 
-import android.content.Context;
+import android.Manifest;
 import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.FragmentActivity;
+
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -20,37 +28,25 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
-import com.google.maps.android.data.geojson.GeoJsonLayer;
-import com.google.maps.android.data.geojson.GeoJsonPolygonStyle;
 import com.google.maps.android.data.kml.KmlLayer;
 
-import org.json.JSONException;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.StringWriter;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import androidx.annotation.Nullable;
-import androidx.fragment.app.FragmentActivity;
 
 public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
 
@@ -58,9 +54,12 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
-  //  FirebaseDatabase rootNote;
-  //  DatabaseReference reference;
+    SupportMapFragment supportMapFragment;
 
+    FusedLocationProviderClient client;
+
+    //  FirebaseDatabase rootNote;
+    //  DatabaseReference reference;
 
 
     private Button btnOpen;
@@ -73,8 +72,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     public static GoogleMap gMap;
     public static int PICK_FILE = 1;
-
-
 
 
     CheckBox checkBox;
@@ -90,30 +87,27 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     List<LatLng> bigpolygonList = new ArrayList<>();
 
 
-
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
 
-
-        if (requestCode == PICK_FILE)
-        {
-            if (resultCode == RESULT_OK)
-            {
+        if (requestCode == PICK_FILE) {
+            if (resultCode == RESULT_OK) {
                 Uri uri = data.getData();
                 String fileContent = readTextFile(uri);
-             //   Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
-                InputStream is = new ByteArrayInputStream( fileContent.getBytes() );
+                //   Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
+                InputStream is = new ByteArrayInputStream(fileContent.getBytes());
 
 
-                try { KmlLayer kmlLayer = new KmlLayer(gMap,is,getApplicationContext());
+                try {
+                    KmlLayer kmlLayer = new KmlLayer(gMap, is, getApplicationContext());
                     kmlLayer.addLayerToMap();
 
-                } catch (IOException e){
+                } catch (IOException e) {
                     Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
 
-                }catch (XmlPullParserException e) {
+                } catch (XmlPullParserException e) {
                     Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
 
                 }
@@ -129,6 +123,15 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+
+        client = LocationServices.getFusedLocationProviderClient(this);
+
+        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            getCurrentLocation();
+        }else {
+            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},44);
+        }
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
         btnImport = findViewById(R.id.btnImport);
@@ -157,45 +160,40 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
         supportMapFragment.getMapAsync(this::onMapReady);
 
-        btnImport.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
+        btnImport.setOnClickListener(v -> {
 
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                startActivityForResult(intent, PICK_FILE);
+            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+            intent.setType("*/*");
+            startActivityForResult(intent, PICK_FILE);
 
 
-
-                //LAYERS
+            //LAYERS
 /*
-                try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
-                    kmlLayer.addLayerToMap();
+            try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
+                kmlLayer.addLayerToMap();
 
-                } catch (IOException e){
-                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+            } catch (IOException e){
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
 
-                }catch (XmlPullParserException e) {
-                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+            }catch (XmlPullParserException e) {
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
 
-                }
-
-
-                try {
-                    GeoJsonLayer layer = new GeoJsonLayer(gMap, R.raw.athens,getApplicationContext());
-                    layer.addLayerToMap();
-
-                } catch (IOException e) {
-                    Toast.makeText(MainActivity.this, "could not read file", Toast.LENGTH_SHORT).show();
-                    
-
-                } catch (JSONException e) {
-                    Toast.makeText(MainActivity.this, "could not convert file", Toast.LENGTH_SHORT).show();
-
-                }
-*/
             }
 
+
+            try {
+                GeoJsonLayer layer = new GeoJsonLayer(gMap, R.raw.athens,getApplicationContext());
+                layer.addLayerToMap();
+
+            } catch (IOException e) {
+                Toast.makeText(MainActivity.this, "could not read file", Toast.LENGTH_SHORT).show();
+
+
+            } catch (JSONException e) {
+                Toast.makeText(MainActivity.this, "could not convert file", Toast.LENGTH_SHORT).show();
+
+            }
+*/
         });
 
 
@@ -228,22 +226,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                 polygonList.clear();
 
 
-
-
-
-
-
-                 //   rootNote = FirebaseDatabase.getInstance();
-                 //   reference = rootNote.getReference("users");
-                  //  reference.setValue(""+fileOutputStream);
-
-
-
-
-
-
-
-
             }
 
         });
@@ -271,6 +253,43 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
+    private void getCurrentLocation() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        Task<Location> task = client.getLastLocation();
+        task.addOnSuccessListener(new OnSuccessListener<Location>() {
+            @Override
+            public void onSuccess(Location location) {
+                if (location != null){
+                    supportMapFragment.getMapAsync(new OnMapReadyCallback() {
+                        @Override
+                        public void onMapReady(GoogleMap googleMap) {
+                            LatLng latLng = new LatLng((location.getLatitude()),location.getLongitude());
+                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,90));
+                        }
+                    });
+                }
+            }
+        });
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if(requestCode==44){
+            if(grantResults.length >0.5 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
+                getCurrentLocation();
+            }
+        }
+    }
 
     @Override
     protected void onStart() {
@@ -340,9 +359,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
 
 
+
+
+
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+
 
                 MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
 

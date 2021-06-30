@@ -3,7 +3,6 @@ package com.example.gmaps;
 import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -12,14 +11,10 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
-import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -28,8 +23,6 @@ import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
-import com.google.android.gms.tasks.OnSuccessListener;
-import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
@@ -56,7 +49,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
     SupportMapFragment supportMapFragment;
 
-    FusedLocationProviderClient client;
 
     //  FirebaseDatabase rootNote;
     //  DatabaseReference reference;
@@ -85,6 +77,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     List<LatLng> tagList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
+
+
 
 
     @Override
@@ -125,13 +119,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
 
-        client = LocationServices.getFusedLocationProviderClient(this);
-
-        if (ActivityCompat.checkSelfPermission(MainActivity.this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            getCurrentLocation();
-        }else {
-            ActivityCompat.requestPermissions(MainActivity.this,new String[]{Manifest.permission.ACCESS_FINE_LOCATION},44);
-        }
 
         btnOpen = (Button) findViewById(R.id.btnOpen);
         btnImport = findViewById(R.id.btnImport);
@@ -167,33 +154,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             startActivityForResult(intent, PICK_FILE);
 
 
-            //LAYERS
-/*
-            try { KmlLayer kmlLayer = new KmlLayer(gMap,R.raw.russia,getApplicationContext());
-                kmlLayer.addLayerToMap();
-
-            } catch (IOException e){
-                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-            }catch (XmlPullParserException e) {
-                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-            }
-
-
-            try {
-                GeoJsonLayer layer = new GeoJsonLayer(gMap, R.raw.athens,getApplicationContext());
-                layer.addLayerToMap();
-
-            } catch (IOException e) {
-                Toast.makeText(MainActivity.this, "could not read file", Toast.LENGTH_SHORT).show();
-
-
-            } catch (JSONException e) {
-                Toast.makeText(MainActivity.this, "could not convert file", Toast.LENGTH_SHORT).show();
-
-            }
-*/
         });
 
 
@@ -225,7 +185,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
                 polygonList.clear();
 
-
             }
 
         });
@@ -244,52 +203,13 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     bigpolygonList.clear();
 
                 } catch (Exception e) {
-
-
+                        System.out.println("");
                 }
             }
         });
 
-
     }
 
-    private void getCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        Task<Location> task = client.getLastLocation();
-        task.addOnSuccessListener(new OnSuccessListener<Location>() {
-            @Override
-            public void onSuccess(Location location) {
-                if (location != null){
-                    supportMapFragment.getMapAsync(new OnMapReadyCallback() {
-                        @Override
-                        public void onMapReady(GoogleMap googleMap) {
-                            LatLng latLng = new LatLng((location.getLatitude()),location.getLongitude());
-                            googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng,90));
-                        }
-                    });
-                }
-            }
-        });
-    }
-
-    @Override
-    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if(requestCode==44){
-            if(grantResults.length >0.5 && grantResults[0]==PackageManager.PERMISSION_GRANTED){
-                getCurrentLocation();
-            }
-        }
-    }
 
     @Override
     protected void onStart() {
@@ -302,22 +222,21 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         startActivity(intent);
 
     }
-    private String readTextFile(Uri uri)
-    {
+
+    private String readTextFile(Uri uri) {
         BufferedReader reader = null;
         StringBuilder builder = new StringBuilder();
-        try
-        {
+        try {
             reader = new BufferedReader(new InputStreamReader(getContentResolver().openInputStream(uri)));
 
             String line = "";
-            while ((line = reader.readLine()) != null)
-            {
+            while ((line = reader.readLine()) != null) {
                 builder.append(line);
             }
             reader.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
-        catch (IOException e) {e.printStackTrace();}
         return builder.toString();
     }
 
@@ -357,7 +276,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
+            return;
+        }
+        gMap.setMyLocationEnabled(true);
 
 
 
@@ -386,12 +309,6 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                         Toast.makeText(MainActivity.this, "Please draw inside the polygon", Toast.LENGTH_SHORT).show();
                     }
                 }
-
-           /*     Marker marker = gMap.addMarker(markerOptions);
-                contain = PolyUtil.containsLocation(latLng.latitude,latLng.longitude,bigpolygonList,true);
-                Toast.makeText(MainActivity.this, "Inside polygon?"+contain, Toast.LENGTH_SHORT).show();
-                latLngList.add(latLng);
-                markerList.add(marker); */
 
 
             }

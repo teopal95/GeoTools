@@ -11,6 +11,7 @@ import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
+import android.widget.Toolbar;
 
 import androidx.annotation.Nullable;
 import androidx.core.app.ActivityCompat;
@@ -134,6 +135,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
         checkBox = findViewById(R.id.checkbox);
         editText = findViewById(R.id.editText);
+
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
 
 
         btnOpen.setOnClickListener(new View.OnClickListener() {
@@ -378,9 +382,10 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             return;
         }
+
+
         gMap.setMyLocationEnabled(true);
-
-
+        gMap.getUiSettings().setZoomControlsEnabled(true);
 
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
@@ -414,6 +419,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
 
     }
+
 
 
 }

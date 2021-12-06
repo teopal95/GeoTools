@@ -1,18 +1,25 @@
 package com.example.gmaps;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -47,7 +54,7 @@ import java.util.Arrays;
 import java.util.List;
 
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -76,11 +83,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     EditText editText;
 
     String polygonString;
-    Button btDraw, btClear, btnImport;
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
-    List<LatLng> tagList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
 
@@ -121,54 +126,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-
-
-        btnOpen = (Button) findViewById(R.id.btnOpen);
-        btnImport = findViewById(R.id.btnImport);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.ex_menu, menu);
+        return true;
+    }
 
 
-        checkBox = findViewById(R.id.checkbox);
-        editText = findViewById(R.id.editText);
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.draw:
 
-
-        btnOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-                openActivityLoad();
-            }
-        });
-
-
-        //Assign Variables
-        btDraw = findViewById(R.id.bt_draw);
-        btClear = findViewById(R.id.bt_clear);
-
-
-        //Initialize SupportMapFragment
-        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-        supportMapFragment.getMapAsync(this::onMapReady);
-
-        btnImport.setOnClickListener(v -> {
-
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_FILE);
-
-
-        });
-
-
-        btDraw.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
+            {
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
@@ -195,12 +165,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
 
-        });
+                break;
 
-        btClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Clear all
+            case R.id.import1:
+
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                startActivityForResult(intent, PICK_FILE);
+
+                break;
+
+            case R.id.open:
+
+                openActivityLoad();
+
+                break;
+
+            case R.id.clear:
+
                 try {
 
                     latLngList.clear();
@@ -211,10 +193,43 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     bigpolygonList.clear();
 
                 } catch (Exception e) {
-                        System.out.println("");
+                    System.out.println("");
                 }
-            }
-        });
+
+                break;
+
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+
+
+
+
+
+        checkBox = findViewById(R.id.checkbox);
+        editText = findViewById(R.id.editText);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        //Assign Variables
+
+
+        //Initialize SupportMapFragment
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        supportMapFragment.getMapAsync(this::onMapReady);
+
+
 
     }
 
@@ -375,12 +390,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             return;
         }
         gMap.setMyLocationEnabled(true);
 
-
+        gMap.getUiSettings().setZoomControlsEnabled(true);
 
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {

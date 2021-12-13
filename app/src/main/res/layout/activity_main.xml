@@ -1,108 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
     tools:context=".MainActivity">
 
-   <fragment
-       android:layout_width="match_parent"
-       android:layout_height="match_parent"
-       android:id="@+id/google_map"
-       android:name="com.google.android.gms.maps.SupportMapFragment"
-       />
+    <fragment
+        android:id="@+id/google_map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="615dp"
+        android:layout_below="@+id/toolbar"
+        />
 
     <LinearLayout
-       android:layout_width="match_parent"
-       android:layout_height="wrap_content"
-      android:orientation="vertical"
-      android:padding="10dp"
-      android:layout_alignParentBottom="true"
-      android:background="@android:color/white">
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:background="@android:color/white"
+        android:orientation="vertical"
+        android:padding="10dp">
 
-       <CheckBox
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="Big Farm"
-           android:id="@+id/checkbox" />
+        <CheckBox
+            android:id="@+id/checkbox"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Big Farm" />
 
-       <LinearLayout
-           android:layout_width="match_parent"
-           android:layout_height="wrap_content"
-           android:orientation="horizontal"
-           >
-       <Button
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="Save As"
-           android:onClick="saveNote"
-           android:layout_weight="1"
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
 
-           />
-       <EditText
-           android:layout_width="wrap_content"
-           android:layout_height="wrap_content"
-           android:text="Type a Name"
-           android:textSize="20dp"
-           android:layout_weight="1"
-           android:id="@+id/editText"/>
-   </LinearLayout>
+            <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:onClick="saveNote"
+                android:text="Save As"
 
+                />
 
-       <Button
-           android:id="@+id/btnOpen"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:text="Open" />
-       <Button
-           android:id="@+id/btnImport"
-           android:layout_width="match_parent"
-           android:layout_height="match_parent"
-           android:text="Import" />
+            <EditText
+                android:id="@+id/editText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textSize="20dp" />
+        </LinearLayout>
 
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:orientation="horizontal"
+            android:weightSum="2" />
 
 
+    </LinearLayout>
+
+    <androidx.appcompat.widget.Toolbar
+        android:id="@+id/toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="?attr/colorPrimary"
+        android:minHeight="?attr/actionBarSize"
+        android:theme="?attr/actionBarTheme" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/toolbar"
+        android:layout_marginTop="-85dp"
+        android:orientation="horizontal"
+        android:visibility="visible">
 
 
-
-
-
-       <LinearLayout
-          android:layout_width="match_parent"
-          android:layout_height="wrap_content"
-         android:weightSum="2"
-         android:orientation="horizontal"
-         android:layout_marginTop="10dp">
-
-         <Button
-
-             android:layout_width="0dp"
-             android:layout_height="wrap_content"
-            android:layout_weight="1.5"
-            android:id="@+id/bt_draw"
-            android:text="Draw polygon" />
-
-         <Button
-             android:layout_width="0dp"
-             android:layout_height="wrap_content"
-             android:layout_weight="0.5"
-             android:id="@+id/bt_clear"
-             android:text="Clear" />
-
-
-
-
-
-      </LinearLayout>
-
-
-
-
-
-   </LinearLayout>
+    </LinearLayout>
 
 
 </RelativeLayout>

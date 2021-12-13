@@ -14,7 +14,7 @@
         android:label="GeoTools"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.GMaps">
+        android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
 
 
 

@@ -1,17 +1,25 @@
 package com.example.gmaps;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.FragmentActivity;
 
@@ -33,15 +41,20 @@ import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 
-public class MainActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -70,11 +83,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     EditText editText;
 
     String polygonString;
-    Button btDraw, btClear, btnImport;
     Polygon polygon = null;
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
-    List<LatLng> tagList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
 
@@ -84,6 +95,8 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
+
+        
 
 
         if (requestCode == PICK_FILE) {
@@ -113,54 +126,19 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-
-        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-
-
-        btnOpen = (Button) findViewById(R.id.btnOpen);
-        btnImport = findViewById(R.id.btnImport);
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater menuInflater = getMenuInflater();
+        menuInflater.inflate(R.menu.ex_menu, menu);
+        return true;
+    }
 
 
-        checkBox = findViewById(R.id.checkbox);
-        editText = findViewById(R.id.editText);
+    @Override
+    public boolean onOptionsItemSelected(@NonNull MenuItem item) {
+        switch (item.getItemId()){
+            case R.id.draw:
 
-
-        btnOpen.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-
-                openActivityLoad();
-            }
-        });
-
-
-        //Assign Variables
-        btDraw = findViewById(R.id.bt_draw);
-        btClear = findViewById(R.id.bt_clear);
-
-
-        //Initialize SupportMapFragment
-        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-        supportMapFragment.getMapAsync(this::onMapReady);
-
-        btnImport.setOnClickListener(v -> {
-
-            Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-            intent.setType("*/*");
-            startActivityForResult(intent, PICK_FILE);
-
-
-        });
-
-
-        btDraw.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
+            {
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
@@ -187,12 +165,24 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             }
 
-        });
+                break;
 
-        btClear.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //Clear all
+            case R.id.import1:
+
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                startActivityForResult(intent, PICK_FILE);
+
+                break;
+
+            case R.id.open:
+
+                openActivityLoad();
+
+                break;
+
+            case R.id.clear:
+
                 try {
 
                     latLngList.clear();
@@ -203,10 +193,43 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
                     bigpolygonList.clear();
 
                 } catch (Exception e) {
-                        System.out.println("");
+                    System.out.println("");
                 }
-            }
-        });
+
+                break;
+
+
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+
+        supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+
+
+
+
+
+        checkBox = findViewById(R.id.checkbox);
+        editText = findViewById(R.id.editText);
+
+        Toolbar toolbar = findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+
+
+        //Assign Variables
+
+
+        //Initialize SupportMapFragment
+        SupportMapFragment supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+        supportMapFragment.getMapAsync(this::onMapReady);
+
+
 
     }
 
@@ -222,7 +245,7 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         startActivity(intent);
 
     }
-
+   
     private String readTextFile(Uri uri) {
         BufferedReader reader = null;
         StringBuilder builder = new StringBuilder();
@@ -238,6 +261,93 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
             e.printStackTrace();
         }
         return builder.toString();
+    }
+
+    public void createKMLFile() {
+
+        String kmlName = editText.getText().toString();
+
+        String kmlInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
+                .replace(")", "").replace("]", "").replace(", "," ").replaceFirst("^ *", "").replaceAll(" +", " ");
+
+
+       kmlInput = kmlInput.replaceAll("(-?\\d+[.]\\d+),(-?\\d+[.]\\d+)", "$2,$1");
+
+
+
+
+        String kmlstart = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
+                "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
+                "<Document>";
+
+        String kmlelement = "<Placemark>"+"<ExtendedData>"+"</ExtendedData>"+"<Polygon>"+"<outerBoundaryIs>"+"<LinearRing>"+"<coordinates>"+kmlInput+"</coordinates>" +
+    "</LinearRing>"+"</outerBoundaryIs>"+"</Polygon>"+"</Placemark>";
+
+
+        String kmlend = "</Document>" +"</kml>";
+
+        ArrayList<String> content = new ArrayList<String>();
+        content.add(0, kmlstart);
+        content.add(1, kmlelement);
+        content.add(2, kmlend);
+
+        String kmltest = content.get(0) + content.get(1) + content.get(2);
+
+
+        File testexists = new File("/sdcard/download/KML" + "/" + kmlName + ".kml");
+        Writer fwriter;
+
+        if (!testexists.exists()) {
+            try {
+
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + kmlName + ".kml");
+                fwriter.write(kmltest);
+                fwriter.flush();
+                fwriter.close();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+        } else {
+
+            //schleifenvariable
+            String filecontent = "";
+
+            ArrayList<String> newoutput = new ArrayList<String>();
+            ;
+
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(testexists));
+                while ((filecontent = in.readLine()) != null)
+
+                    newoutput.add(filecontent);
+
+            } catch (FileNotFoundException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+
+            newoutput.add(2, kmlelement);
+
+            String rewrite = "";
+            for (String s : newoutput) {
+                rewrite += s;
+            }
+
+            try {
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + kmlName + ".kml");
+                fwriter.write(rewrite);
+                fwriter.flush();
+                fwriter.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
     }
 
 
@@ -262,6 +372,9 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
 
             Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
 
+            createKMLFile();
+
+
 
         } catch (Exception e) {
             Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
@@ -277,12 +390,11 @@ public class MainActivity extends FragmentActivity implements OnMapReadyCallback
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-
             return;
         }
         gMap.setMyLocationEnabled(true);
 
-
+        gMap.getUiSettings().setZoomControlsEnabled(true);
 
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {

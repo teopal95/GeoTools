@@ -1,12 +1,12 @@
 package com.example.gmaps;
 
 import android.Manifest;
-import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
+import android.provider.ContactsContract;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,7 +21,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -36,12 +35,22 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.data.kml.KmlLayer;
 
+import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
+import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
+import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
+import org.nocrala.tools.gis.data.esri.shapefile.header.ShapeFileHeader;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
+import java.io.EOFException;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -49,26 +58,22 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.Writer;
+import java.net.DatagramPacket;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
+    private static final int REQUEST_LOCATION_PERMISSION = 1;
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
     SupportMapFragment supportMapFragment;
-
-
-    //  FirebaseDatabase rootNote;
-    //  DatabaseReference reference;
-
-
-    private Button btnOpen;
-    private XmlSerializer xmlSerializer;
 
 
     private static final String FILE_NAME = "example.kml";
@@ -89,6 +94,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
 
+    ArrayList<PointData[]> fromshp = new ArrayList<>();
+
 
 
 
@@ -96,10 +103,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        
 
 
-        if (requestCode == PICK_FILE) {
+
+
+/*
+          if (requestCode == PICK_FILE) {
             if (resultCode == RESULT_OK) {
                 Uri uri = data.getData();
                 String fileContent = readTextFile(uri);
@@ -122,6 +131,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
         }
+*/
 
     }
 
@@ -135,10 +145,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.draw:
-
-            {
+        switch (item.getItemId()) {
+            case R.id.draw: {
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
@@ -165,7 +173,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
 
-                break;
+            break;
 
             case R.id.import1:
 
@@ -189,7 +197,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     markerList.clear();
                     polygonList.clear();
                     gMap.clear();
-                    polygon.remove();
+                    polygon.remove();Toast.makeText(MainActivity.this, "filenotfound", Toast.LENGTH_SHORT).show();
                     bigpolygonList.clear();
 
                 } catch (Exception e) {
@@ -198,11 +206,25 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 break;
 
+            case R.id.shp:
+                Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+                chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
+                chooseFile.setType("*/*");
+                chooseFile = Intent.createChooser(chooseFile, "Choose a file");
+                startActivityForResult(chooseFile, PICK_FILE);
 
+
+
+
+
+
+                break;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -211,7 +233,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
 
-
+        requestLocationPermission();
 
 
 
@@ -232,6 +254,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     }
+
+    public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+        // Forward results to EasyPermissions
+        EasyPermissions.onRequestPermissionsResult(requestCode, permissions, grantResults, this);
+    }
+
+
+
+    public void requestLocationPermission() {
+        String[] perms = {Manifest.permission.ACCESS_FINE_LOCATION};
+        if(EasyPermissions.hasPermissions(this, perms)) {
+            Toast.makeText(this, "Permission already granted", Toast.LENGTH_SHORT).show();
+        }
+        else {
+            EasyPermissions.requestPermissions(this, "Please grant the location permission", REQUEST_LOCATION_PERMISSION, perms);
+        }
+    }
+
 
 
     @Override
@@ -384,16 +426,26 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
+
+
+
+
+
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
         gMap = googleMap;
         gMap.setMapType(GoogleMap.MAP_TYPE_HYBRID);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+        if (ActivityCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_FINE_LOCATION) !=
+                PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission
+                        (this, Manifest.permission.ACCESS_COARSE_LOCATION) !=
+                        PackageManager.PERMISSION_GRANTED) {
+
             return;
         }
         gMap.setMyLocationEnabled(true);
-
         gMap.getUiSettings().setZoomControlsEnabled(true);
 
 

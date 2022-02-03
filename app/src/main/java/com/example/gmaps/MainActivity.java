@@ -1,12 +1,10 @@
 package com.example.gmaps;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -21,7 +19,6 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.fragment.app.FragmentActivity;
 
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -34,13 +31,21 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
-import com.google.maps.android.data.kml.KmlLayer;
 
-import org.xmlpull.v1.XmlPullParserException;
+import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
+import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
+import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonMShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonZShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineMShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
+import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineZShape;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
-import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -77,6 +82,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     public static GoogleMap gMap;
     public static int PICK_FILE = 1;
+    private static final int MAX_POINTS_READER  = 100000;
 
 
     CheckBox checkBox;
@@ -88,23 +94,44 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
-
-
+    public static ArrayList<LatLng> ShapeList = new ArrayList<>();
 
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        
-
 
         if (requestCode == PICK_FILE) {
             if (resultCode == RESULT_OK) {
                 Uri uri = data.getData();
-                String fileContent = readTextFile(uri);
+                try {
+                    InputStream in = getContentResolver().openInputStream(uri);
+                    MyShapeFileReader mshp = new MyShapeFileReader();
+                    mshp.exec(in);
+
+                    Toast.makeText(this, ""+ShapeList, Toast.LENGTH_SHORT).show();
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(ShapeList);
+                    polygon = gMap.addPolygon(polygonOptions);
+
+
+
+                    } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                    
+
+
+
+
+
+
+        /*        String fileContent = readTextFile(uri);
                 //   Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
                 InputStream is = new ByteArrayInputStream(fileContent.getBytes());
+
 
 
                 try {
@@ -120,7 +147,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 }
 
 
-            }
+
+      */      }
         }
 
     }
@@ -135,10 +163,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
-        switch (item.getItemId()){
-            case R.id.draw:
-
-            {
+        switch (item.getItemId()) {
+            case R.id.draw: {
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
@@ -165,13 +191,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             }
 
-                break;
+            break;
 
             case R.id.import1:
 
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                startActivityForResult(intent, PICK_FILE);
+               Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+               intent.setType("*/*");
+               startActivityForResult(intent, PICK_FILE);
 
                 break;
 
@@ -180,6 +206,19 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 openActivityLoad();
 
                 break;
+
+            case R.id.shape:
+              //  Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+              //  chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
+              //  chooseFile.setType("*/*");
+              //  chooseFile = Intent.createChooser(chooseFile,"Choose a file");
+              //  startActivityForResult(chooseFile,PICK_FILE);
+
+
+
+                break;
+
+                
 
             case R.id.clear:
 
@@ -245,7 +284,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         startActivity(intent);
 
     }
-   
+
     private String readTextFile(Uri uri) {
         BufferedReader reader = null;
         StringBuilder builder = new StringBuilder();
@@ -263,7 +302,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         return builder.toString();
     }
 
-    public void createKMLFile() {
+
+
+
+
+
+
+
+
+        public void createKMLFile() {
 
         String kmlName = editText.getText().toString();
 
@@ -349,39 +396,94 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+    public static void readFromShape(ArrayList<LatLng> result, PointData[] pointsOfPart) {
 
-
-    public void saveNote(View v) {
-
-        try {
-
-
-            String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
-                    .replace(")", "").replace("]", "");
-            ;
-            String[] tagArray = tagInput.split(",[ ]");
-            List<String> tags = Arrays.asList(tagArray);
-
-            Note note = new Note(tags);
-
-            String docName = editText.getText().toString();
-
-
-            db.collection("Coordinates").document("" + docName).set(note);
-
-
-            Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
-
-            createKMLFile();
-
-
-
-        } catch (Exception e) {
-            Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
+        for (PointData point : pointsOfPart) {
+            result.add(new LatLng(point.getY(), point.getX()));
         }
-
+        ShapeList = result;
 
     }
+
+
+    public class MyShapeFileReader {
+        public ArrayList<LatLng> exec(InputStream is) throws Exception {
+            ArrayList<LatLng> result = new ArrayList<>();
+            ValidationPreferences prefs = new ValidationPreferences();
+            prefs.setMaxNumberOfPointsPerShape(100000);
+            ShapeFileReader r = new ShapeFileReader(is, prefs);
+
+            AbstractShape s;
+            while ((s = r.next()) != null) {
+                switch (s.getShapeType()) {
+                    case POLYLINE_M:
+                        for (int i = 0; i < ((PolylineMShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolylineMShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                    case POLYLINE_Z:
+                        for (int i = 0; i < ((PolylineZShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolylineZShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                    case POLYLINE:
+                        for (int i = 0; i < ((PolylineShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolylineShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                    case POLYGON:
+                        for (int i = 0; i < ((PolygonShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolygonShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                    case POLYGON_M:
+                        for (int i = 0; i < ((PolygonMShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolygonMShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                    case POLYGON_Z:
+                        for (int i = 0; i < ((PolygonZShape) s).getNumberOfParts(); i++) {
+                            readFromShape(result, ((PolygonZShape) s).getPointsOfPart(i));
+                        }
+                        break;
+                }
+            }
+            return result;
+        }
+    }
+
+
+        public void saveNote(View v) {
+
+            try {
+
+
+                String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
+                        .replace(")", "").replace("]", "");
+                ;
+                String[] tagArray = tagInput.split(",[ ]");
+                List<String> tags = Arrays.asList(tagArray);
+
+                Note note = new Note(tags);
+
+                String docName = editText.getText().toString();
+
+
+                db.collection("Coordinates").document("" + docName).set(note);
+
+
+                Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
+
+                createKMLFile();
+
+
+            } catch (Exception e) {
+                Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
+            }
+
+
+        }
+
 
 
     @Override

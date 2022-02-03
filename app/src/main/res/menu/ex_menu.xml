@@ -21,6 +21,11 @@
         android:title="Open"
         app:showAsAction="never"/>
 
+    <item android:id="@+id/shape"
+
+        android:title="Shp"
+        app:showAsAction="never"/>
+
 
     <item android:id="@+id/clear"
 

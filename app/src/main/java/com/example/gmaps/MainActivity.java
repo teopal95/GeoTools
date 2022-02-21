@@ -31,6 +31,7 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.android.data.kml.KmlLayer;
 
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
@@ -43,9 +44,11 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonZShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineMShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineZShape;
+import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -68,20 +71,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     SupportMapFragment supportMapFragment;
 
 
-    //  FirebaseDatabase rootNote;
-    //  DatabaseReference reference;
+
 
 
     private Button btnOpen;
     private XmlSerializer xmlSerializer;
 
 
-    private static final String FILE_NAME = "example.kml";
 
-    // Initialize Variables
 
     public static GoogleMap gMap;
-    public static int PICK_FILE = 1;
+    private static final int REQUEST_KML = 1;
+    private static final int REQUEST_SHP= 2;
     private static final int MAX_POINTS_READER  = 100000;
 
 
@@ -102,7 +103,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        if (requestCode == PICK_FILE) {
+        if (requestCode == REQUEST_SHP) {
             if (resultCode == RESULT_OK) {
                 Uri uri = data.getData();
                 try {
@@ -110,26 +111,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     MyShapeFileReader mshp = new MyShapeFileReader();
                     mshp.exec(in);
 
-                    Toast.makeText(this, ""+ShapeList, Toast.LENGTH_SHORT).show();
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(ShapeList);
                     polygon = gMap.addPolygon(polygonOptions);
 
 
-
-                    } catch (FileNotFoundException e) {
-                    e.printStackTrace();
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
-                    
+            }
+        }
 
+            if (requestCode == REQUEST_KML) {
+                if (resultCode == RESULT_OK) {
+                    Uri uri = data.getData();
 
-
-
-
-
-        /*        String fileContent = readTextFile(uri);
-                //   Toast.makeText(this, fileContent, Toast.LENGTH_LONG).show();
+               String fileContent = readTextFile(uri);
                 InputStream is = new ByteArrayInputStream(fileContent.getBytes());
 
 
@@ -138,17 +134,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     KmlLayer kmlLayer = new KmlLayer(gMap, is, getApplicationContext());
                     kmlLayer.addLayerToMap();
 
-                } catch (IOException e) {
-                    Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-                } catch (XmlPullParserException e) {
+                } catch (IOException | XmlPullParserException e) {
                     Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
 
                 }
 
 
-
-      */      }
+                }
         }
 
     }
@@ -193,11 +185,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             break;
 
-            case R.id.import1:
+            case R.id.kml:
 
                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
                intent.setType("*/*");
-               startActivityForResult(intent, PICK_FILE);
+               startActivityForResult(intent, REQUEST_KML);
 
                 break;
 
@@ -208,11 +200,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case R.id.shape:
-              //  Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-              //  chooseFile.addCategory(Intent.CATEGORY_OPENABLE);
-              //  chooseFile.setType("*/*");
-              //  chooseFile = Intent.createChooser(chooseFile,"Choose a file");
-              //  startActivityForResult(chooseFile,PICK_FILE);
+                Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+                chooseFile.setType("*/*");
+                startActivityForResult(chooseFile,REQUEST_SHP);
 
 
 

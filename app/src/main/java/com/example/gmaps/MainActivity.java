@@ -1,21 +1,27 @@
 package com.example.gmaps;
 
 import android.Manifest;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.drawable.shapes.Shape;
 import android.net.Uri;
 import android.os.Bundle;
+import android.text.InputType;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
+
 import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
@@ -31,7 +37,10 @@ import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
+import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
+import com.linuxense.javadbf.DBFException;
+import com.linuxense.javadbf.DBFReader;
 
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
@@ -50,6 +59,7 @@ import org.xmlpull.v1.XmlSerializer;
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -65,29 +75,24 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
+
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
     SupportMapFragment supportMapFragment;
 
 
-
-
-
-    private Button btnOpen;
-    private XmlSerializer xmlSerializer;
-
-
-
-
     public static GoogleMap gMap;
     private static final int REQUEST_KML = 1;
-    private static final int REQUEST_SHP= 2;
-    private static final int MAX_POINTS_READER  = 100000;
+    private static final int REQUEST_SHP = 1;
+
 
 
     CheckBox checkBox;
     EditText editText;
+
+    public String myText;
+
 
     String polygonString;
     Polygon polygon = null;
@@ -111,24 +116,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     MyShapeFileReader mshp = new MyShapeFileReader();
                     mshp.exec(in);
 
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(ShapeList);
-                    polygon = gMap.addPolygon(polygonOptions);
-
-
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
             }
         }
 
-            if (requestCode == REQUEST_KML) {
-                if (resultCode == RESULT_OK) {
-                    Uri uri = data.getData();
+        if (requestCode == REQUEST_KML) {
+            if (resultCode == RESULT_OK) {
+                Uri uri = data.getData();
 
-               String fileContent = readTextFile(uri);
+                String fileContent = readTextFile(uri);
                 InputStream is = new ByteArrayInputStream(fileContent.getBytes());
-
-
 
                 try {
                     KmlLayer kmlLayer = new KmlLayer(gMap, is, getApplicationContext());
@@ -139,8 +138,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 }
 
-
-                }
+            }
         }
 
     }
@@ -158,8 +156,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.draw: {
                 try {
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).fillColor(Color.BLUE);
                     polygon = gMap.addPolygon(polygonOptions);
+                    Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+
+
 
                     if (checkBox.isChecked()) {
                         bigpolygonList.clear();
@@ -169,27 +170,22 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     polygonList.addAll(latLngList);
                     polygonString = polygonList.toString();
 
-
                     latLngList.clear();
                     markerList.clear();
 
-
                 } catch (Exception e) {
                     Toast.makeText(MainActivity.this, "Select your Land", Toast.LENGTH_SHORT).show();
-
                 }
-
                 polygonList.clear();
-
             }
 
             break;
 
             case R.id.kml:
 
-               Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-               intent.setType("*/*");
-               startActivityForResult(intent, REQUEST_KML);
+                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                intent.setType("*/*");
+                startActivityForResult(intent, REQUEST_KML);
 
                 break;
 
@@ -202,13 +198,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.shape:
                 Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
                 chooseFile.setType("*/*");
-                startActivityForResult(chooseFile,REQUEST_SHP);
-
-
+                startActivityForResult(chooseFile, REQUEST_SHP);
 
                 break;
 
-                
 
             case R.id.clear:
 
@@ -227,6 +220,49 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
                 break;
 
+            case R.id.poly:
+
+
+
+
+                PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).fillColor(Color.BLUE);
+                polygon = gMap.addPolygon(polygonOptions);
+                polygon.setClickable(true);
+
+               gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
+                   @Override
+                   public void onPolygonClick(Polygon polygon) {
+                       Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+                   }
+               });
+                break;
+
+            case R.id.SaveAs:
+                AlertDialog.Builder mydialog = new AlertDialog.Builder(MainActivity.this);
+                mydialog.setTitle("Give name to this Polygon:");
+
+                final EditText weightInput = new EditText(MainActivity.this);
+                weightInput.setInputType(InputType.TYPE_CLASS_TEXT);
+                mydialog.setView(weightInput);
+
+                mydialog.setPositiveButton("Save", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        myText = weightInput.getText().toString();
+                    }
+                });
+
+                mydialog.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        dialogInterface.cancel();
+                    }
+                });
+
+                mydialog.show();
+
+                break;
+
 
         }
 
@@ -239,9 +275,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_main);
 
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
-
-
-
 
 
         checkBox = findViewById(R.id.checkbox);
@@ -259,8 +292,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         supportMapFragment.getMapAsync(this::onMapReady);
 
 
-
     }
+
+
+
 
 
     @Override
@@ -291,11 +326,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return builder.toString();
     }
-
-
-
-
-
 
 
 
@@ -336,13 +366,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         if (!testexists.exists()) {
             try {
-
                 fwriter = new FileWriter("/sdcard/download/KML" + "/" + kmlName + ".kml");
                 fwriter.write(kmltest);
                 fwriter.flush();
                 fwriter.close();
             } catch (IOException e1) {
-                // TODO Auto-generated catch block
                 e1.printStackTrace();
             }
         } else {
@@ -386,12 +414,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+
+
+
+
     public static void readFromShape(ArrayList<LatLng> result, PointData[] pointsOfPart) {
+
+        ShapeList.clear();
 
         for (PointData point : pointsOfPart) {
             result.add(new LatLng(point.getY(), point.getX()));
         }
         ShapeList = result;
+
+        PolygonOptions polygonOptions = new PolygonOptions().addAll(ShapeList);
+        gMap.addPolygon(polygonOptions);
+
+
 
     }
 
@@ -447,10 +486,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             try {
 
-
                 String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
                         .replace(")", "").replace("]", "");
-                ;
+
                 String[] tagArray = tagInput.split(",[ ]");
                 List<String> tags = Arrays.asList(tagArray);
 

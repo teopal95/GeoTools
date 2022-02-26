@@ -32,4 +32,13 @@
         android:title="Clear"
         app:showAsAction="never"/>
 
+    <item android:id = "@+id/poly"
+        android:title="polyColor"
+        app:showAsAction="never"/>
+
+    <item android:id="@+id/SaveAs"
+        android:title="SaveAs.."
+        app:showAsAction="never"/>
+
+
 </menu>

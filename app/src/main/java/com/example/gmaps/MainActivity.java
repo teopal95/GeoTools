@@ -156,7 +156,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         switch (item.getItemId()) {
             case R.id.draw: {
                 try {
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).fillColor(Color.BLUE);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
                     Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
 
@@ -222,17 +222,51 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             case R.id.poly:
 
-
-
-
-                PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).fillColor(Color.BLUE);
-                polygon = gMap.addPolygon(polygonOptions);
-                polygon.setClickable(true);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
+                    polygon = gMap.addPolygon(polygonOptions);
+                    polygon.setClickable(true);
 
                gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
                    @Override
                    public void onPolygonClick(Polygon polygon) {
+                       try {
+                           AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                           builder.setTitle("Color");
+// add a list
+                           String[] colors = {"Red", "Green", "White", "Blue", "Yellow"};
+                           builder.setItems(colors, new DialogInterface.OnClickListener() {
+                               @Override
+                               public void onClick(DialogInterface dialog, int which) {
+                                   switch (which) {
+                                       case 0:
+                                           polygon.setFillColor(Color.RED);
+                                           break;
+                                       case 1:
+                                           polygon.setFillColor(Color.GREEN);
+                                           break;
+                                       case 2:
+                                           polygon.setFillColor(Color.WHITE);
+                                           break;
+                                       case 3:
+                                           polygon.setFillColor(Color.BLUE);
+                                           break;
+                                       case 4:
+                                           polygon.setFillColor(Color.YELLOW);
+                                           break;
+                                   }
+                               }
+                           });
+
+// create and show the alert dialog
+                           AlertDialog dialog = builder.create();
+                           dialog.show();
+                       }catch (Exception e){
+
+                       }
+
                        Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+
+
                    }
                });
                 break;
@@ -525,6 +559,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         gMap.setMyLocationEnabled(true);
 
         gMap.getUiSettings().setZoomControlsEnabled(true);
+
 
 
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {

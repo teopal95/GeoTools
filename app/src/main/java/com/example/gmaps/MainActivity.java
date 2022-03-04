@@ -29,6 +29,7 @@ import androidx.core.app.ActivityCompat;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -39,8 +40,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
-import com.linuxense.javadbf.DBFException;
-import com.linuxense.javadbf.DBFReader;
+
 
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
@@ -89,7 +89,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     CheckBox checkBox;
-    EditText editText;
+    CheckBox checkBoxHoles;
+
 
     public String myText;
 
@@ -99,7 +100,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
+    List<Marker> holeMarkerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
+    List<LatLng> holesList = new ArrayList<>();
     public static ArrayList<LatLng> ShapeList = new ArrayList<>();
 
 
@@ -162,9 +165,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
 
+
                     if (checkBox.isChecked()) {
                         bigpolygonList.clear();
-                        bigpolygonList.addAll(latLngList);
+                       bigpolygonList.addAll(latLngList);
+
                     }
 
                     polygonList.addAll(latLngList);
@@ -222,9 +227,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             case R.id.poly:
 
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
+                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesList);
                     polygon = gMap.addPolygon(polygonOptions);
                     polygon.setClickable(true);
+
+
 
                gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
                    @Override
@@ -283,6 +290,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         myText = weightInput.getText().toString();
+                        try {
+
+                            String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
+                                    .replace(")", "").replace("]", "");
+
+                            String[] tagArray = tagInput.split(",[ ]");
+                            List<String> tags = Arrays.asList(tagArray);
+
+                            Note note = new Note(tags);
+
+                            String docName = weightInput.getText().toString();
+
+
+                            db.collection("Coordinates").document("" + docName).set(note);
+
+
+                            Toast.makeText(MainActivity.this, "saved", Toast.LENGTH_SHORT).show();
+
+                            createKMLFile();
+
+
+                        } catch (Exception e) {
+                            Toast.makeText(MainActivity.this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 });
 
@@ -294,6 +325,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
 
                 mydialog.show();
+                
+
+                break;
+
+            case R.id.holes:
+
+
+
+
+
+
+
+                holesList.clear();
+                holeMarkerList.clear();
+
 
                 break;
 
@@ -312,7 +358,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
         checkBox = findViewById(R.id.checkbox);
-        editText = findViewById(R.id.editText);
+        checkBoxHoles = findViewById(R.id.checkBoxHoles);
+
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -366,7 +413,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         public void createKMLFile() {
 
-        String kmlName = editText.getText().toString();
+        String kmlName = myText;
 
         String kmlInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
                 .replace(")", "").replace("]", "").replace(", "," ").replaceFirst("^ *", "").replaceAll(" +", " ");
@@ -516,35 +563,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     }
 
 
-        public void saveNote(View v) {
-
-            try {
-
-                String tagInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
-                        .replace(")", "").replace("]", "");
-
-                String[] tagArray = tagInput.split(",[ ]");
-                List<String> tags = Arrays.asList(tagArray);
-
-                Note note = new Note(tags);
-
-                String docName = editText.getText().toString();
-
-
-                db.collection("Coordinates").document("" + docName).set(note);
-
-
-                Toast.makeText(this, "Land Saved", Toast.LENGTH_SHORT).show();
-
-                createKMLFile();
-
-
-            } catch (Exception e) {
-                Toast.makeText(this, "Please, draw a Polygon", Toast.LENGTH_SHORT).show();
-            }
-
-
-        }
 
 
 
@@ -568,6 +586,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
                 MarkerOptions markerOptions = new MarkerOptions().position(latLng).title(latLng.latitude + " : " + latLng.longitude);
+                MarkerOptions holeOptions = new MarkerOptions().position(latLng).icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN));
+
+                if (checkBoxHoles.isChecked()) {
+                    Marker holeMarker = gMap.addMarker(holeOptions);
+                    holesList.add(latLng);
+                            holeMarkerList.add(holeMarker);
+
+                }
+                else
 
 
                 if (bigpolygonList.isEmpty()) {

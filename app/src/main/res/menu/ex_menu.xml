@@ -40,5 +40,9 @@
         android:title="SaveAs.."
         app:showAsAction="never"/>
 
+    <item android:id = "@+id/holes"
+        android:title="Add Hole"
+        app:showAsAction="never"/>
+
 
 </menu>

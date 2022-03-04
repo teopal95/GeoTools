@@ -28,28 +28,14 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Big Farm" />
-
-        <LinearLayout
-            android:layout_width="match_parent"
+        <CheckBox
+            android:id="@+id/checkBoxHoles"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="horizontal">
+            android:text="Add Hole" />
 
-            <Button
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:onClick="saveNote"
-                android:text="Save As"
 
-                />
 
-            <EditText
-                android:id="@+id/editText"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:textSize="20dp" />
-        </LinearLayout>
 
 
         <LinearLayout

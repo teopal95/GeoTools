@@ -390,7 +390,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         try {
             // Build a jsonObject
-            jsonObject.put("name", "sample polygon");
+            jsonObject.put("name", "sample");
             geoJsonObject.put("type", "Feature");
             geoJsonObject.put("properties", propertiesObject);
             geoJsonObject.put("geometry", geometryObject);
@@ -405,6 +405,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 return jsonObjectList;
     }
 
+
+    public void postpoly(){
+
+    }
 
 
 

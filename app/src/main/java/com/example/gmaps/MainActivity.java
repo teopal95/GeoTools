@@ -5,15 +5,12 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.shapes.Shape;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -42,9 +39,11 @@ import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
-import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonMShape;
@@ -54,12 +53,10 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineMShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineZShape;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -75,7 +72,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
-
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
@@ -85,7 +81,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static GoogleMap gMap;
     private static final int REQUEST_KML = 1;
     private static final int REQUEST_SHP = 1;
-
 
 
     CheckBox checkBox;
@@ -161,14 +156,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
-                    Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
-
-
+                    Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList), Toast.LENGTH_SHORT).show();
 
 
                     if (checkBox.isChecked()) {
                         bigpolygonList.clear();
-                       bigpolygonList.addAll(latLngList);
+                        bigpolygonList.addAll(latLngList);
 
                     }
 
@@ -227,55 +220,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             case R.id.poly:
 
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesList);
-                    polygon = gMap.addPolygon(polygonOptions);
-                    polygon.setClickable(true);
+                PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesList);
+                polygon = gMap.addPolygon(polygonOptions);
+                polygon.setClickable(true);
 
 
-
-               gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
-                   @Override
-                   public void onPolygonClick(Polygon polygon) {
-                       try {
-                           AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                           builder.setTitle("Color");
+                gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
+                    @Override
+                    public void onPolygonClick(Polygon polygon) {
+                        try {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("Color");
 // add a list
-                           String[] colors = {"Red", "Green", "White", "Blue", "Yellow"};
-                           builder.setItems(colors, new DialogInterface.OnClickListener() {
-                               @Override
-                               public void onClick(DialogInterface dialog, int which) {
-                                   switch (which) {
-                                       case 0:
-                                           polygon.setFillColor(Color.RED);
-                                           break;
-                                       case 1:
-                                           polygon.setFillColor(Color.GREEN);
-                                           break;
-                                       case 2:
-                                           polygon.setFillColor(Color.WHITE);
-                                           break;
-                                       case 3:
-                                           polygon.setFillColor(Color.BLUE);
-                                           break;
-                                       case 4:
-                                           polygon.setFillColor(Color.YELLOW);
-                                           break;
-                                   }
-                               }
-                           });
+                            String[] colors = {"Red", "Green", "White", "Blue", "Yellow"};
+                            builder.setItems(colors, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0:
+                                            polygon.setFillColor(Color.RED);
+                                            break;
+                                        case 1:
+                                            polygon.setFillColor(Color.GREEN);
+                                            break;
+                                        case 2:
+                                            polygon.setFillColor(Color.WHITE);
+                                            break;
+                                        case 3:
+                                            polygon.setFillColor(Color.BLUE);
+                                            break;
+                                        case 4:
+                                            polygon.setFillColor(Color.YELLOW);
+                                            break;
+                                    }
+                                }
+                            });
 
 // create and show the alert dialog
-                           AlertDialog dialog = builder.create();
-                           dialog.show();
-                       }catch (Exception e){
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        } catch (Exception e) {
 
-                       }
+                        }
 
-                       Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList), Toast.LENGTH_SHORT).show();
 
 
-                   }
-               });
+                    }
+                });
                 break;
 
             case R.id.SaveAs:
@@ -325,22 +317,18 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
 
                 mydialog.show();
-                
+
 
                 break;
 
             case R.id.holes:
 
-
-
-
-
-
-
                 holesList.clear();
                 holeMarkerList.clear();
+                break;
 
-
+            case R.id.ndvi:
+                Toast.makeText(MainActivity.this, "" + JsonBuilder(), Toast.LENGTH_SHORT).show();
                 break;
 
 
@@ -373,6 +361,48 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         supportMapFragment.getMapAsync(this::onMapReady);
 
 
+    }
+
+
+    //AGRO API
+    public List<JSONObject> JsonBuilder() {
+        List<JSONObject> jsonObjectList = new ArrayList<>();
+        JSONObject jsonObject = new JSONObject();
+        JSONObject geometryObject = new JSONObject();
+        JSONObject geoJsonObject = new JSONObject();
+        JSONArray coordinatesJsonArray = new JSONArray();
+        JSONObject propertiesObject = new JSONObject();
+
+        for (LatLng latLng : latLngList) {
+            JSONArray innerArray = null;
+            try {
+                innerArray = new JSONArray(
+                        "[\n" +
+                                latLng.longitude + ", " +
+                                latLng.latitude +
+                                "          ]"
+                );
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            coordinatesJsonArray.put(innerArray);
+        }
+        try {
+            // Build a jsonObject
+            jsonObject.put("name", "sample polygon");
+            geoJsonObject.put("type", "Feature");
+            geoJsonObject.put("properties", propertiesObject);
+            geoJsonObject.put("geometry", geometryObject);
+            geometryObject.put("type", "Polygon");
+            geometryObject.put("coordinates", new JSONArray().put(coordinatesJsonArray));
+            jsonObject.put("geo_json", geoJsonObject);
+            // add jsonObject to List
+            jsonObjectList.add(jsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+return jsonObjectList;
     }
 
 

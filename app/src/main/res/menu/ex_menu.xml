@@ -45,4 +45,8 @@
         app:showAsAction="never"/>
 
 
+    <item android:id = "@+id/ndvi"
+        android:title="ndvi"
+        app:showAsAction="never"/>
+
 </menu>

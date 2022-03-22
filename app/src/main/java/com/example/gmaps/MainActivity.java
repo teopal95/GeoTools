@@ -37,6 +37,13 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.MediaType;
+import com.squareup.okhttp.OkHttpClient;
+import com.squareup.okhttp.Request;
+import com.squareup.okhttp.RequestBody;
+import com.squareup.okhttp.Response;
 
 
 import org.json.JSONArray;
@@ -329,6 +336,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
             case R.id.ndvi:
                 Toast.makeText(MainActivity.this, "" + JsonBuilder(), Toast.LENGTH_SHORT).show();
+
+                postpoly(JsonBuilder());
                 break;
 
 
@@ -402,14 +411,54 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         } catch (JSONException e) {
             e.printStackTrace();
         }
-return jsonObjectList;
+            return jsonObjectList;
     }
 
 
-    public void postpoly(){
+
+
+
+    public void postpoly(List<JSONObject> jsonObjectList){
+       final String url = "http://api.agromonitoring.com/agro/1.0/polygons?acf65f9a08bada4884544c8116252667=sample";
+
+        MediaType JSON = MediaType.parse("application/json; charset=utf-8");
+
+        RequestBody body = RequestBody.create(JSON, jsonObjectList.toString());
+        OkHttpClient client = new OkHttpClient();
+        Request request = new Request.Builder()
+                .url(url)
+                .post(body)
+                .build();
+        Call call = client.newCall(request);
+        call.enqueue(new Callback() {
+            @Override
+            public void onFailure(Request request, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Response response) throws IOException {
+
+                try {
+                    String r = response.body().string();
+
+                    MainActivity.this.runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(MainActivity.this, "Posted" +r, Toast.LENGTH_SHORT).show();
+
+                        }
+                    });
+
+                }catch (IOException e){
+                    e.printStackTrace();
+                    Toast.makeText(MainActivity.this, "Not working", Toast.LENGTH_SHORT).show();
+
+                }
+            }
+        });
 
     }
-
 
 
 

@@ -1,6 +1,7 @@
 package com.example.gmaps;
 
 import android.Manifest;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -17,6 +18,7 @@ import android.view.View;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,7 +27,17 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
+import com.android.volley.AuthFailureError;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonArrayRequest;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -37,11 +49,18 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.JsonArray;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
+import com.squareup.okhttp.Call;
+import com.squareup.okhttp.Callback;
+import com.squareup.okhttp.OkHttpClient;
 
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
 import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
@@ -69,7 +88,9 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -85,6 +106,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static GoogleMap gMap;
     private static final int REQUEST_KML = 1;
     private static final int REQUEST_SHP = 1;
+    public int holes = 0;
+
+    private static final String AGRO_API_LINK = "http://api.agromonitoring.com/agro/1.0";
+    private static final String API_KEY = "242be092da689c49ffbc5765a271b282";
+
+    private RequestQueue mQueue;
 
 
 
@@ -93,16 +120,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public String myText;
+    TextView countText;
+    TextView name;
 
 
     String polygonString;
     Polygon polygon = null;
+    Polygon holePoly = null;
     List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<Marker> holeMarkerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
     List<LatLng> holesList = new ArrayList<>();
+    public List<LatLng> holesListPoly = new ArrayList<>();
+
     public static ArrayList<LatLng> ShapeList = new ArrayList<>();
 
 
@@ -162,6 +194,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
                     Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+                    String sdouble = Double.toString(SphericalUtil.computeArea(latLngList));
+                    countText = findViewById(R.id.countText);
+                    countText.setText(sdouble);
+
+
+
 
 
 
@@ -218,6 +256,10 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     gMap.clear();
                     polygon.remove();
                     bigpolygonList.clear();
+                    holesListPoly.clear();
+                    holesList.clear();
+                    holeMarkerList.clear();
+
 
                 } catch (Exception e) {
                     System.out.println("");
@@ -226,21 +268,30 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case R.id.poly:
+                PolygonOptions polygonOptions;
+                if (holes == 1) {
 
-                    PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesList);
-                    polygon = gMap.addPolygon(polygonOptions);
-                    polygon.setClickable(true);
+                    polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesListPoly);
+                    holesListPoly.clear();
+                    holes =0;
+                }
+                else {
+                    polygonOptions = new PolygonOptions().addAll(latLngList);
+                }
+                polygon = gMap.addPolygon(polygonOptions);
+                polygon.setClickable(true);
 
-
-
-               gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
+                gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
                    @Override
                    public void onPolygonClick(Polygon polygon) {
+                       String epifania = Integer.toString((int)SphericalUtil.computeArea(latLngList));
+                       countText = findViewById(R.id.countText);
+                       countText.setText(epifania);
                        try {
                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                            builder.setTitle("Color");
 // add a list
-                           String[] colors = {"Red", "Green", "White", "Blue", "Yellow"};
+                           String[] colors = {"Red", "Green", "White", "Blue", "Yellow" ,"Holes"};
                            builder.setItems(colors, new DialogInterface.OnClickListener() {
                                @Override
                                public void onClick(DialogInterface dialog, int which) {
@@ -260,6 +311,12 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                                        case 4:
                                            polygon.setFillColor(Color.YELLOW);
                                            break;
+                                       case 5:
+                                           polygon.setClickable(false);
+                                           break;
+
+
+
                                    }
                                }
                            });
@@ -325,21 +382,33 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 });
 
                 mydialog.show();
-                
+
 
                 break;
 
             case R.id.holes:
 
+                holes = 1;
+
+                PolygonOptions polygonHoles = new PolygonOptions().addAll(holesList);
+                holePoly = gMap.addPolygon(polygonHoles);
+
+                holesListPoly = holesList;
+               holeMarkerList.clear();
+              //  holesList.clear();
 
 
+                break;
 
+            case R.id.json:
 
+                createJson();
 
+                break;
 
-                holesList.clear();
-                holeMarkerList.clear();
-
+            case R.id.parse:
+                jsonParse jp = new jsonParse();
+                JsonArray ja = new JsonArray();
 
                 break;
 
@@ -359,6 +428,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         checkBox = findViewById(R.id.checkbox);
         checkBoxHoles = findViewById(R.id.checkBoxHoles);
+        mQueue = Volley.newRequestQueue(this);
 
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -406,6 +476,78 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             e.printStackTrace();
         }
         return builder.toString();
+    }
+    
+    private void postRequest() {
+        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
+        String url = "https://api.agromonitoring.com/agro/1.0";
+        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+            @Override
+            public void onResponse(String response) {
+                Toast.makeText(MainActivity.this, "success", Toast.LENGTH_SHORT).show();
+
+            }
+        }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                error.printStackTrace();
+                Toast.makeText(MainActivity.this, "error!!", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+        requestQueue.add(stringRequest);
+
+    }
+
+    public class jsonParse {
+
+        public JSONArray parseResponse(String data){
+            JSONArray jsondata = new JSONArray();
+            try {
+                JSONArray jsonArray = new JSONArray(data);
+                for (int i = 0; i < jsonArray.length() - 1; i++) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
+                    jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
+                    jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
+                    jsondata.put(jsonObject);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            Toast.makeText(MainActivity.this, "To ID "+jsondata, Toast.LENGTH_SHORT).show();
+            return jsondata;
+        }
+        public String getId(String name, JSONArray jsonArray){
+            String id = null;
+            for(int i=0;i<jsonArray.length()-1;i++){
+                try {
+                    if(name.equals(jsonArray.getJSONObject(i).getString("name"))){
+                        id = jsonArray.getJSONObject(i).getString("id");
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+            return id;
+        }
+        public String getImage(String data) {
+            String ndvi = null;
+            JSONArray jsonArray;
+            try {
+                jsonArray = new JSONArray(data);
+                JSONObject jsonObject = jsonArray.getJSONObject(0);
+                JSONObject image = jsonObject.getJSONObject("image");
+                ndvi = image.getString("ndvi");
+
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+            return ndvi;
+        }
+
     }
 
 
@@ -495,6 +637,95 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }
     }
+
+    public void createJson() {
+
+
+        String jsonstart = "{\n" +
+                "   \"name\":\"Polygon Sample\",\n" +
+                "   \"geo_json\":{\n" +
+                "      \"type\":\"Feature\",\n" +
+                "      \"properties\":{\n" +
+                "\n" +
+                "      },\n" +
+                "      \"geometry\":{\n" +
+                "         \"type\":\"Polygon\",";
+
+        String jsonelement = "\"coordinates\":[\n" +
+                "            [\n" +
+                "               [-121.1958,37.6683],\n" +
+                "               [-121.1779,37.6687],\n" +
+                "               [-121.1773,37.6792],\n" +
+                "               [-121.1958,37.6792],\n" +
+                "               [-121.1958,37.6683]\n" +
+                "            ]\n" +
+                "         ]\n" +
+                "      }\n" +
+                "   }\n" +
+                "}";
+
+
+
+        ArrayList<String> content = new ArrayList<String>();
+        content.add(0, jsonstart);
+        content.add(1, jsonelement);
+
+        String jsontest = content.get(0) + content.get(1);
+        File testexists = new File("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+        Writer fwriter;
+
+        if (!testexists.exists()) {
+            try {
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+                fwriter.write(jsontest);
+                fwriter.flush();
+                fwriter.close();
+            } catch (IOException e1) {
+                e1.printStackTrace();
+            }
+        } else {
+
+            //schleifenvariable
+            String filecontent = "";
+
+            ArrayList<String> newoutput = new ArrayList<String>();
+            ;
+
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(testexists));
+                while ((filecontent = in.readLine()) != null)
+
+                    newoutput.add(filecontent);
+
+            } catch (FileNotFoundException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            } catch (IOException e1) {
+                // TODO Auto-generated catch block
+                e1.printStackTrace();
+            }
+
+            newoutput.add(2, jsonelement);
+
+            String rewrite = "";
+            for (String s : newoutput) {
+                rewrite += s;
+            }
+
+            try {
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+                fwriter.write(rewrite);
+                fwriter.flush();
+                fwriter.close();
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+
+        }
+
+    }
+
 
 
 

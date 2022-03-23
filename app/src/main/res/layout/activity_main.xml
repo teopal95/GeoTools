@@ -23,6 +23,29 @@
         android:orientation="vertical"
         android:padding="10dp">
 
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal" >
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:padding="1dp"
+                android:text="Επιφάνεια (m²) : " />
+
+            <TextView
+                android:id="@+id/countText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:padding="1dp"
+                android:inputType="numberDecimal" />
+
+        </LinearLayout>
+
+
+
         <CheckBox
             android:id="@+id/checkbox"
             android:layout_width="wrap_content"
@@ -35,15 +58,6 @@
             android:text="Add Hole" />
 
 
-
-
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:orientation="horizontal"
-            android:weightSum="2" />
 
 
     </LinearLayout>

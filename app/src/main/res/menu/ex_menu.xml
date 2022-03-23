@@ -43,6 +43,12 @@
     <item android:id = "@+id/holes"
         android:title="Add Hole"
         app:showAsAction="never"/>
+    <item android:id = "@+id/json"
+        android:title="Json"
+        app:showAsAction="never"/>
+    <item android:id = "@+id/parse"
+        android:title="Parse"
+        app:showAsAction="never"/>
 
 
 </menu>

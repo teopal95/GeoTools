@@ -491,8 +491,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                String content ="";
-                content +=
+                Toast.makeText(MainActivity.this, "Success"+response, Toast.LENGTH_SHORT).show();
 
 
 

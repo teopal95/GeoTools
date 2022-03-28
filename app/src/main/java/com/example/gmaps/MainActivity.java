@@ -41,6 +41,7 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.annotations.SerializedName;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
@@ -480,17 +481,22 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
     private void getPosts() {
-        Call<List<JsonParser>> call = jsonPlaceHolderApi.getPosts("Content-Type: application/json","242be092da689c49ffbc5765a271b282");
+        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("Content-Type: application/json","242be092da689c49ffbc5765a271b282");
 
-        call.enqueue(new Callback<List<JsonParser>>() {
+        call.enqueue(new Callback<List<Post>>() {
 
             @Override
-            public void onResponse(Call<List<JsonParser>> call, Response<List<JsonParser>> response) {
+            public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
                 if (!response.isSuccessful()){
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(MainActivity.this, "Success Code: "+response.body().toString(), Toast.LENGTH_SHORT).show();
+                String content ="";
+                content +=
+
+
+
+
 
 
 
@@ -498,7 +504,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
 
             @Override
-            public void onFailure(Call<List<JsonParser>> call, Throwable t) {
+            public void onFailure(Call<List<Post>> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "Error "+t, Toast.LENGTH_SHORT).show();
 
             }

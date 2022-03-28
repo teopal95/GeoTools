@@ -13,5 +13,5 @@ public interface JsonPlaceHolderApi {
 
 @Headers("Static-Header: 123")
     @GET("polygons")
-    Call<List<JsonParser>> getPosts(@Header("Dynamic-Header") String header,@Query("appid") String appid);
+    Call<List<Post>> getPosts(@Header("Dynamic-Header") String header,@Query("appid") String appid);
 }

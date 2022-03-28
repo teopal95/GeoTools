@@ -1,20 +1,16 @@
 package com.example.gmaps;
 
 import android.Manifest;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.graphics.drawable.shapes.Shape;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
@@ -27,17 +23,13 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
 
-import com.android.volley.AuthFailureError;
-import com.android.volley.Request;
-import com.android.volley.RequestQueue;
-import com.android.volley.Response;
-import com.android.volley.VolleyError;
-import com.android.volley.toolbox.JsonArrayRequest;
-import com.android.volley.toolbox.JsonObjectRequest;
-import com.android.volley.toolbox.StringRequest;
-import com.android.volley.toolbox.Volley;
+
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -49,21 +41,15 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.gson.JsonArray;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
-import com.squareup.okhttp.Call;
-import com.squareup.okhttp.Callback;
-import com.squareup.okhttp.OkHttpClient;
 
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
 import org.nocrala.tools.gis.data.esri.shapefile.ValidationPreferences;
-import org.nocrala.tools.gis.data.esri.shapefile.exception.InvalidShapeFileException;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.AbstractShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.PointData;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolygonMShape;
@@ -73,12 +59,10 @@ import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineMShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineShape;
 import org.nocrala.tools.gis.data.esri.shapefile.shape.shapes.PolylineZShape;
 import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlSerializer;
 
 import java.io.BufferedReader;
 import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -88,9 +72,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -111,8 +93,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private static final String AGRO_API_LINK = "http://api.agromonitoring.com/agro/1.0";
     private static final String API_KEY = "242be092da689c49ffbc5765a271b282";
 
-    private RequestQueue mQueue;
-
+private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     CheckBox checkBox;
@@ -120,6 +101,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public String myText;
+    public String json;
+    public List<JSONObject> jsonObjectList = new ArrayList<>();
     TextView countText;
     TextView name;
 
@@ -127,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     String polygonString;
     Polygon polygon = null;
     Polygon holePoly = null;
-    List<LatLng> latLngList = new ArrayList<>();
+    public List<LatLng> latLngList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<Marker> holeMarkerList = new ArrayList<>();
@@ -401,14 +384,20 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case R.id.json:
-
-                createJson();
-
+                try {
+                    createJson();
+                    Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
                 break;
 
             case R.id.parse:
-                jsonParse jp = new jsonParse();
-                JsonArray ja = new JsonArray();
+
+                getPosts();
+
+
+
 
                 break;
 
@@ -426,9 +415,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
 
 
+
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl("https://api.agromonitoring.com/agro/1.0/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+
+        jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+
+
+
+
+
+
         checkBox = findViewById(R.id.checkbox);
         checkBoxHoles = findViewById(R.id.checkBoxHoles);
-        mQueue = Volley.newRequestQueue(this);
 
 
         Toolbar toolbar = findViewById(R.id.toolbar);
@@ -477,79 +478,32 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
         return builder.toString();
     }
-    
-    private void postRequest() {
-        RequestQueue requestQueue = Volley.newRequestQueue(MainActivity.this);
-        String url = "https://api.agromonitoring.com/agro/1.0";
-        StringRequest stringRequest = new StringRequest(Request.Method.POST, url, new Response.Listener<String>() {
+
+    private void getPosts() {
+        Call<List<JsonParser>> call = jsonPlaceHolderApi.getPosts("Content-Type: application/json","242be092da689c49ffbc5765a271b282");
+
+        call.enqueue(new Callback<List<JsonParser>>() {
+
             @Override
-            public void onResponse(String response) {
-                Toast.makeText(MainActivity.this, "success", Toast.LENGTH_SHORT).show();
+            public void onResponse(Call<List<JsonParser>> call, Response<List<JsonParser>> response) {
+                if (!response.isSuccessful()){
+                    Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Toast.makeText(MainActivity.this, "Success Code: "+response.body().toString(), Toast.LENGTH_SHORT).show();
+
+
+
 
             }
-        }, new Response.ErrorListener() {
+
             @Override
-            public void onErrorResponse(VolleyError error) {
-                error.printStackTrace();
-                Toast.makeText(MainActivity.this, "error!!", Toast.LENGTH_SHORT).show();
+            public void onFailure(Call<List<JsonParser>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "Error "+t, Toast.LENGTH_SHORT).show();
 
             }
         });
-
-
-        requestQueue.add(stringRequest);
-
     }
-
-    public class jsonParse {
-
-        public JSONArray parseResponse(String data){
-            JSONArray jsondata = new JSONArray();
-            try {
-                JSONArray jsonArray = new JSONArray(data);
-                for (int i = 0; i < jsonArray.length() - 1; i++) {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
-                    jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
-                    jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
-                    jsondata.put(jsonObject);
-                }
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            Toast.makeText(MainActivity.this, "To ID "+jsondata, Toast.LENGTH_SHORT).show();
-            return jsondata;
-        }
-        public String getId(String name, JSONArray jsonArray){
-            String id = null;
-            for(int i=0;i<jsonArray.length()-1;i++){
-                try {
-                    if(name.equals(jsonArray.getJSONObject(i).getString("name"))){
-                        id = jsonArray.getJSONObject(i).getString("id");
-                    }
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-            }
-            return id;
-        }
-        public String getImage(String data) {
-            String ndvi = null;
-            JSONArray jsonArray;
-            try {
-                jsonArray = new JSONArray(data);
-                JSONObject jsonObject = jsonArray.getJSONObject(0);
-                JSONObject image = jsonObject.getJSONObject("image");
-                ndvi = image.getString("ndvi");
-
-            } catch (JSONException e) {
-                e.printStackTrace();
-            }
-            return ndvi;
-        }
-
-    }
-
 
 
 
@@ -638,8 +592,9 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
     }
 
-    public void createJson() {
 
+
+    public void createJson() throws JSONException {
 
         String jsonstart = "{\n" +
                 "   \"name\":\"Polygon Sample\",\n" +
@@ -671,12 +626,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         content.add(1, jsonelement);
 
         String jsontest = content.get(0) + content.get(1);
-        File testexists = new File("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+       json = jsontest;
+
+
+
+                File testexists = new File("/sdcard/download/KML" + "/" + "test25" + ".geojson");
         Writer fwriter;
 
         if (!testexists.exists()) {
             try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test25" + ".geojson");
                 fwriter.write(jsontest);
                 fwriter.flush();
                 fwriter.close();
@@ -713,7 +672,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
 
             try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test2" + ".geojson");
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test25" + ".geojson");
                 fwriter.write(rewrite);
                 fwriter.flush();
                 fwriter.close();
@@ -725,6 +684,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
     }
+
 
 
 

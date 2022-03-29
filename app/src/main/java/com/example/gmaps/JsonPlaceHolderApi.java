@@ -1,5 +1,7 @@
 package com.example.gmaps;
 
+import org.json.JSONObject;
+
 import java.util.List;
 
 import retrofit2.Call;
@@ -13,5 +15,5 @@ public interface JsonPlaceHolderApi {
 
 @Headers("Static-Header: 123")
     @GET("polygons")
-    Call<List<Post>> getPosts(@Header("Dynamic-Header") String header,@Query("appid") String appid);
+    Call<List<Post>> getPosts(@Header("Dynamic-Header") String header, @Query("appid") String appid);
 }

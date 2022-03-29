@@ -41,12 +41,14 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.gson.JsonArray;
 import com.google.gson.annotations.SerializedName;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
 
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
@@ -481,7 +483,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
     private void getPosts() {
-        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("Content-Type: application/json","242be092da689c49ffbc5765a271b282");
+        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("application/json; charset=utf-8","242be092da689c49ffbc5765a271b282");
 
         call.enqueue(new Callback<List<Post>>() {
 
@@ -491,12 +493,19 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(MainActivity.this, "Success"+response, Toast.LENGTH_SHORT).show();
 
+                List<Post> posts=response.body();
 
+                for(Post post:posts) {
+                    String content = "";
 
+                    content += "name: " + post.getName() +"\n";
+                    content += "ID: " + post.getId() +"\n";
+                    content += "user_id: " + post.getUser_id();
 
+                    Toast.makeText(MainActivity.this, "Polygon " +"\n" + content, Toast.LENGTH_SHORT).show();
 
+                }
 
 
 
@@ -509,6 +518,27 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
         });
     }
+    public JSONArray parseResponse(String data){
+        JSONArray jsondata = new JSONArray();
+        try {
+            JSONArray jsonArray = new JSONArray(data);
+            for (int i = 0; i < jsonArray.length() - 1; i++) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
+                jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
+                jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
+                jsondata.put(jsonObject);
+            }
+            Toast.makeText(this, "ok", Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
+        }
+        return jsondata;
+    }
+
+
+
 
 
 
@@ -635,12 +665,12 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
-                File testexists = new File("/sdcard/download/KML" + "/" + "test25" + ".geojson");
+                File testexists = new File("/sdcard/download/KML" + "/" + "test55" + ".geojson");
         Writer fwriter;
 
         if (!testexists.exists()) {
             try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test25" + ".geojson");
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test55" + ".geojson");
                 fwriter.write(jsontest);
                 fwriter.flush();
                 fwriter.close();
@@ -677,7 +707,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
 
             try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test25" + ".geojson");
+                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test55" + ".geojson");
                 fwriter.write(rewrite);
                 fwriter.flush();
                 fwriter.close();

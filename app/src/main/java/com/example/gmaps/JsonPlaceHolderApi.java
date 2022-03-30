@@ -1,7 +1,5 @@
 package com.example.gmaps;
 
-import org.json.JSONObject;
-
 import java.util.List;
 
 import retrofit2.Call;
@@ -18,13 +16,11 @@ public interface JsonPlaceHolderApi {
     Call<List<Post>> getPosts(@Header("Dynamic-Header") String header, @Query("appid") String appid);
 
     @GET("search")
-    Call<List<Image>> getImages(
+    Call<List<NdviGet>> getImages(
             @Query("start") int start,
             @Query("end") int end,
             @Query("polyid") String polyid,
             @Query("appid") String appid );
-
-
 
 
 

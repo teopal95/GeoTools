@@ -41,8 +41,6 @@ import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.firebase.firestore.CollectionReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.gson.JsonArray;
-import com.google.gson.annotations.SerializedName;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
@@ -403,6 +401,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
+
+
                 break;
 
 
@@ -519,13 +519,35 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
         });
     }
+    public JSONArray parseResponse(String data){
+        JSONArray jsondata = new JSONArray();
+        try {
+            JSONArray jsonArray = new JSONArray(data);
+            for (int i = 0; i < jsonArray.length() - 1; i++) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
+                jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
+                jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
+                jsondata.put(jsonObject);
+            }
+            Toast.makeText(this, "ok", Toast.LENGTH_SHORT).show();
+        } catch (JSONException e) {
+            e.printStackTrace();
+            Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
+        }
+        return jsondata;
+    }
+
+
+
+
 
     public void getImage() {
 
-        Call<List<Image>> call = jsonPlaceHolderApi.getImages(1500336000,1508976000,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
-        call.enqueue(new Callback<List<Image>>() {
+        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1500336000,1508976000,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
+        call.enqueue(new Callback<List<NdviGet>>() {
             @Override
-            public void onResponse(Call<List<Image>> call, Response<List<Image>> response) {
+            public void onResponse(Call<List<NdviGet>> call, Response<List<NdviGet>> response) {
                 if (!response.isSuccessful()){
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
@@ -535,7 +557,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
 
             @Override
-            public void onFailure(Call<List<Image>> call, Throwable t) {
+            public void onFailure(Call<List<NdviGet>> call, Throwable t) {
                 Toast.makeText(MainActivity.this, "error image", Toast.LENGTH_SHORT).show();
 
             }
@@ -559,6 +581,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
        kmlInput = kmlInput.replaceAll("(-?\\d+[.]\\d+),(-?\\d+[.]\\d+)", "$2,$1");
+
+
 
 
 

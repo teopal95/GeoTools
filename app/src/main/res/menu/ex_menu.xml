@@ -50,5 +50,9 @@
         android:title="Parse"
         app:showAsAction="never"/>
 
+    <item android:id="@+id/ndvi"
+        android:title="NDVI"
+        app:showAsAction="never"/>
+
 
 </menu>

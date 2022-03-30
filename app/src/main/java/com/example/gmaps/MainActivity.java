@@ -397,7 +397,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             case R.id.parse:
 
-                getPosts();
+              //  getPosts();
+                getImage();
 
 
 
@@ -420,7 +421,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.agromonitoring.com/agro/1.0/")
+                .baseUrl("https://api.agromonitoring.com/agro/1.0/image/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -518,24 +519,31 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
         });
     }
-    public JSONArray parseResponse(String data){
-        JSONArray jsondata = new JSONArray();
-        try {
-            JSONArray jsonArray = new JSONArray(data);
-            for (int i = 0; i < jsonArray.length() - 1; i++) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
-                jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
-                jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
-                jsondata.put(jsonObject);
+
+    public void getImage() {
+
+        Call<List<Image>> call = jsonPlaceHolderApi.getImages(1500336000,1508976000,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
+        call.enqueue(new Callback<List<Image>>() {
+            @Override
+            public void onResponse(Call<List<Image>> call, Response<List<Image>> response) {
+                if (!response.isSuccessful()){
+                    Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                Toast.makeText(MainActivity.this, "SUCCESS", Toast.LENGTH_SHORT).show();
+
             }
-            Toast.makeText(this, "ok", Toast.LENGTH_SHORT).show();
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
-        }
-        return jsondata;
+
+            @Override
+            public void onFailure(Call<List<Image>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "error image", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
     }
+
 
 
 

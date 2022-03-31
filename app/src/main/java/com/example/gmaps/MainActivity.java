@@ -395,8 +395,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             case R.id.parse:
 
-              //  getPosts();
-                getImage();
+               getPosts();
+              //  getImage();
 
 
 
@@ -421,7 +421,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.agromonitoring.com/agro/1.0/image/")
+                .baseUrl("https://api.agromonitoring.com/agro/1.0/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
@@ -544,7 +544,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
     public void getImage() {
 
-        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1500336000,1508976000,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
+        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1646302185,1648721385,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
         call.enqueue(new Callback<List<NdviGet>>() {
             @Override
             public void onResponse(Call<List<NdviGet>> call, Response<List<NdviGet>> response) {
@@ -552,7 +552,29 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                Toast.makeText(MainActivity.this, "SUCCESS", Toast.LENGTH_SHORT).show();
+
+               
+
+                List<NdviGet> images=response.body();
+
+
+                for(NdviGet image:images) {
+
+
+
+                    String content = "";
+
+
+
+
+                    Toast.makeText(MainActivity.this, ""+content, Toast.LENGTH_SHORT).show();
+
+                }
+
+
+
+
+
 
             }
 

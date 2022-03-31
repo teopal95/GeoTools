@@ -395,8 +395,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             case R.id.parse:
 
-               getPosts();
-              //  getImage();
+              // getPosts();
+                getImage();
 
 
 
@@ -519,24 +519,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
             }
         });
     }
-    public JSONArray parseResponse(String data){
-        JSONArray jsondata = new JSONArray();
-        try {
-            JSONArray jsonArray = new JSONArray(data);
-            for (int i = 0; i < jsonArray.length() - 1; i++) {
-                JSONObject jsonObject = new JSONObject();
-                jsonObject.put("name", jsonArray.getJSONObject(i).getString("name"));
-                jsonObject.put("id", jsonArray.getJSONObject(i).getString("id"));
-                jsonObject.put("center", jsonArray.getJSONObject(i).getJSONArray("center"));
-                jsondata.put(jsonObject);
-            }
-            Toast.makeText(this, "ok", Toast.LENGTH_SHORT).show();
-        } catch (JSONException e) {
-            e.printStackTrace();
-            Toast.makeText(this, "error", Toast.LENGTH_SHORT).show();
-        }
-        return jsondata;
-    }
+
 
 
 
@@ -552,27 +535,19 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
+                List<NdviGet> posts=response.body();
 
-               
-
-                List<NdviGet> images=response.body();
-
-
-                for(NdviGet image:images) {
-
+                for(NdviGet post:posts) {
 
 
                     String content = "";
 
+                    content += "ndvi: " + post.getImage().getNdvi() +"\n";
 
 
-
-                    Toast.makeText(MainActivity.this, ""+content, Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
 
                 }
-
-
-
 
 
 

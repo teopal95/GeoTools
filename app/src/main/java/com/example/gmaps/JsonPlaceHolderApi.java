@@ -15,7 +15,7 @@ public interface JsonPlaceHolderApi {
     @GET("polygons")
     Call<List<Post>> getPosts(@Header("Dynamic-Header") String header, @Query("appid") String appid);
 
-    @GET("search")
+    @GET("image/search")
     Call<List<NdviGet>> getImages(
             @Query("start") int start,
             @Query("end") int end,

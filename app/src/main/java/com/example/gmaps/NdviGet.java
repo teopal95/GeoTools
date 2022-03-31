@@ -12,7 +12,10 @@ public class NdviGet {
     Stats StatsObject;
     Data DataObject;
 
-    //GETTERS
+    private Image image;
+
+
+//GETTERS
 
 
     public float getDt() {
@@ -35,9 +38,11 @@ public class NdviGet {
         return sunObject;
     }
 
-    public Image getImageObject() {
-        return ImageObject;
+
+    public Image getImage() {
+        return image;
     }
+
 
     public Tile getTileObject() {
         return TileObject;
@@ -185,47 +190,6 @@ public class NdviGet {
         }
     }
 
-    public class Image{
-        private String truecolor;
-        private String falsecolor;
-        private String ndvi;
-        private String evi;
-        private String evi2;
-        private String nri;
-        private String dswi;
-        private String ndwi;
 
-        public String getTruecolor() {
-            return truecolor;
-        }
-
-        public String getFalsecolor() {
-            return falsecolor;
-        }
-
-        public String getNdvi() {
-            return ndvi;
-        }
-
-        public String getEvi() {
-            return evi;
-        }
-
-        public String getEvi2() {
-            return evi2;
-        }
-
-        public String getNri() {
-            return nri;
-        }
-
-        public String getDswi() {
-            return dswi;
-        }
-
-        public String getNdwi() {
-            return ndwi;
-        }
-    }
 
 }

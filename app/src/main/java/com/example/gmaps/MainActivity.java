@@ -14,6 +14,7 @@ import android.view.MenuItem;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -44,6 +45,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
+import com.squareup.picasso.Picasso;
 
 
 import org.json.JSONArray;
@@ -87,6 +89,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
 
     public static GoogleMap gMap;
+
     private static final int REQUEST_KML = 1;
     private static final int REQUEST_SHP = 1;
     public int holes = 0;
@@ -395,14 +398,16 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             case R.id.parse:
 
-              // getPosts();
+                openNdvi();
+
+
+
+
+                break;
+
+            case R.id.ndvi:
+                // getPosts();
                 getImage();
-
-
-
-
-
-
                 break;
 
 
@@ -417,6 +422,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         setContentView(R.layout.activity_main);
 
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
+
+
 
 
 
@@ -520,6 +527,14 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         });
     }
 
+    public void openNdvi() {
+
+        Intent intent = new Intent(this,NDVI.class);
+        startActivity(intent);
+
+
+    }
+
 
 
 
@@ -527,7 +542,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
     public void getImage() {
 
-        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1646302185,1648721385,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
+        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1647769302,1647855702,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
         call.enqueue(new Callback<List<NdviGet>>() {
             @Override
             public void onResponse(Call<List<NdviGet>> call, Response<List<NdviGet>> response) {
@@ -546,6 +561,11 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
                     Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
+
+
+
+
+
 
                 }
 

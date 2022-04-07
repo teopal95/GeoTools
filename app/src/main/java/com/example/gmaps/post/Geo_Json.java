@@ -6,8 +6,11 @@ public class Geo_Json {
     private Properties properties;
     private Geometry geometry;
 
-
-
+    public Geo_Json(String type, Properties properties, Geometry geometry) {
+        this.type = type;
+        this.properties = properties;
+        this.geometry = geometry;
+    }
 
     public String getType() {
         return type;

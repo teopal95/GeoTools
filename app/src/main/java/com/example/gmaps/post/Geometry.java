@@ -9,6 +9,11 @@ public class Geometry {
 
     private ArrayList<List> coordinates;
 
+    public Geometry(String type, ArrayList<List> coordinates) {
+        this.type = type;
+        this.coordinates = coordinates;
+    }
+
     public String getType() {
         return type;
     }

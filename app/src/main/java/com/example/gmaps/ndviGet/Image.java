@@ -1,4 +1,4 @@
-package com.example.gmaps;
+package com.example.gmaps.ndviGet;
 
 
     public class Image{

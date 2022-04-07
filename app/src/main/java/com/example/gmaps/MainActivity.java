@@ -4,17 +4,19 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 
 import android.widget.CheckBox;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -31,6 +33,8 @@ import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 
+import com.example.gmaps.ndviGet.NdviGet;
+import com.example.gmaps.post.Post;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -45,10 +49,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
-import com.squareup.picasso.Picasso;
 
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
@@ -96,6 +98,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String AGRO_API_LINK = "http://api.agromonitoring.com/agro/1.0";
     private static final String API_KEY = "242be092da689c49ffbc5765a271b282";
+    public static final  String EXTRA_TEXT = "com.example.gmaps.EXTRA_TEXT";
 
 private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
@@ -106,6 +109,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
     public String myText;
     public String json;
+    public String textImage;
     public List<JSONObject> jsonObjectList = new ArrayList<>();
     TextView countText;
     TextView name;
@@ -406,8 +410,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 break;
 
             case R.id.ndvi:
-                // getPosts();
-                getImage();
+                 getPosts();
+               // getImage();
                 break;
 
 
@@ -433,6 +437,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 .build();
 
         jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
+
 
 
 
@@ -507,9 +512,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 for(Post post:posts) {
                     String content = "";
 
-                    content += "name: " + post.getName() +"\n";
-                    content += "ID: " + post.getId() +"\n";
-                    content += "user_id: " + post.getUser_id();
+                    content += "name: " + post.getGeo_json().getProperties();
 
                     Toast.makeText(MainActivity.this, "Polygon " +"\n" + content, Toast.LENGTH_SHORT).show();
 
@@ -529,7 +532,10 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
     public void openNdvi() {
 
+        String text = textImage;
+
         Intent intent = new Intent(this,NDVI.class);
+        intent.putExtra(EXTRA_TEXT,text);
         startActivity(intent);
 
 
@@ -555,19 +561,21 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 for(NdviGet post:posts) {
 
 
+
+
                     String content = "";
 
                     content += "ndvi: " + post.getImage().getNdvi() +"\n";
 
 
+
                     Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
 
-
-
-
+                    textImage = content;
 
 
                 }
+
 
 
 
@@ -582,6 +590,17 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
+    public Bitmap StringToBitMap(String encodedString){
+        try{
+            byte [] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
+            Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
+            return bitmap;
+        }
+        catch(Exception e){
+            e.getMessage();
+            return null;
+        }
+    }
 
 
 
@@ -589,7 +608,11 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
-        public void createKMLFile() {
+
+
+
+
+    public void createKMLFile() {
 
         String kmlName = myText;
 

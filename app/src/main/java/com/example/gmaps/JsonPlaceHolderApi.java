@@ -1,5 +1,8 @@
 package com.example.gmaps;
 
+import com.example.gmaps.ndviGet.NdviGet;
+import com.example.gmaps.post.Post;
+
 import java.util.List;
 
 import retrofit2.Call;

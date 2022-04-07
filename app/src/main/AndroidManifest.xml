@@ -9,7 +9,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.DayNight.NoActionBar">
-        <activity android:name=".NDVI"></activity>
+        <activity android:name=".NDVI"
+            android:parentActivityName=".MainActivity"></activity>
+
         <activity android:name=".loadActivity" />
         <activity android:name=".MainActivity">
             <intent-filter>

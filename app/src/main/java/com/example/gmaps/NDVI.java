@@ -47,7 +47,12 @@ public class NDVI extends AppCompatActivity {
         String url = intent.getStringExtra(MainActivity.EXTRA_TEXT);
 
 
+
         imageView = findViewById(R.id.ndvi);
+
+
+        Picasso.get().load("https://api.agromonitoring.com/image/1.0/1206237c000/62374ee3f03cc7dc4271b7d7?appid=242be092da689c49ffbc5765a271b282").into(imageView);
+
 
 
 

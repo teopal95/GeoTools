@@ -49,6 +49,7 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
+import com.squareup.picasso.Picasso;
 
 
 import org.json.JSONException;
@@ -410,8 +411,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 break;
 
             case R.id.ndvi:
-                 getPosts();
-               // getImage();
+                // getPosts();
+                getImage();
                 break;
 
 
@@ -572,6 +573,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
 
                     textImage = content;
+
 
 
                 }

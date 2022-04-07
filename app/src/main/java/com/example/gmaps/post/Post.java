@@ -5,27 +5,8 @@ import java.util.ArrayList;
 
 public class Post {
 
-    private String id;
-
-
-    private Geo_json Geo_json;
-
-
-
-
     private String name;
-    ArrayList<Object> center = new ArrayList<Object>();
-    private float area;
-    private String user_id;
-
-
-    public String getId() {
-        return id;
-    }
-
-    public com.example.gmaps.post.Geo_json getGeo_json() {
-        return Geo_json;
-    }
+    private Geo_Json geo_json;
 
 
 
@@ -33,15 +14,15 @@ public class Post {
         return name;
     }
 
-    public ArrayList<Object> getCenter() {
-        return center;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public float getArea() {
-        return area;
+    public Geo_Json getGeo_json() {
+        return geo_json;
     }
 
-    public String getUser_id() {
-        return user_id;
+    public void setGeo_json(Geo_Json geo_json) {
+        this.geo_json = geo_json;
     }
 }

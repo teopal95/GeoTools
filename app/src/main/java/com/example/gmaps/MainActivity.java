@@ -26,6 +26,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -84,7 +85,6 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
 
-
     private FirebaseFirestore db = FirebaseFirestore.getInstance();
     private CollectionReference coordinatesRef = db.collection("Coordinates");
 
@@ -99,9 +99,11 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private static final String AGRO_API_LINK = "http://api.agromonitoring.com/agro/1.0";
     private static final String API_KEY = "242be092da689c49ffbc5765a271b282";
-    public static final  String EXTRA_TEXT = "com.example.gmaps.EXTRA_TEXT";
+    public static final String EXTRA_TEXT = "com.example.gmaps.EXTRA_TEXT";
 
-private  JsonPlaceHolderApi jsonPlaceHolderApi;
+    private JsonPlaceHolderApi jsonPlaceHolderApi;
+
+    public static String content;
 
 
     CheckBox checkBox;
@@ -185,20 +187,15 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 try {
                     PolygonOptions polygonOptions = new PolygonOptions().addAll(latLngList);
                     polygon = gMap.addPolygon(polygonOptions);
-                    Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+                    Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList), Toast.LENGTH_SHORT).show();
                     String sdouble = Double.toString(SphericalUtil.computeArea(latLngList));
                     countText = findViewById(R.id.countText);
                     countText.setText(sdouble);
 
 
-
-
-
-
-
                     if (checkBox.isChecked()) {
                         bigpolygonList.clear();
-                       bigpolygonList.addAll(latLngList);
+                        bigpolygonList.addAll(latLngList);
 
                     }
 
@@ -265,66 +262,64 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
                     polygonOptions = new PolygonOptions().addAll(latLngList).addHole(holesListPoly);
                     holesListPoly.clear();
-                    holes =0;
-                }
-                else {
+                    holes = 0;
+                } else {
                     polygonOptions = new PolygonOptions().addAll(latLngList);
                 }
                 polygon = gMap.addPolygon(polygonOptions);
                 polygon.setClickable(true);
 
                 gMap.setOnPolygonClickListener(new GoogleMap.OnPolygonClickListener() {
-                   @Override
-                   public void onPolygonClick(Polygon polygon) {
-                       String epifania = Integer.toString((int)SphericalUtil.computeArea(latLngList));
-                       countText = findViewById(R.id.countText);
-                       countText.setText(epifania);
-                       try {
-                           AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                           builder.setTitle("Color");
+                    @Override
+                    public void onPolygonClick(Polygon polygon) {
+                        String epifania = Integer.toString((int) SphericalUtil.computeArea(latLngList));
+                        countText = findViewById(R.id.countText);
+                        countText.setText(epifania);
+                        try {
+                            AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                            builder.setTitle("Color");
 // add a list
-                           String[] colors = {"Red", "Green", "White", "Blue", "Yellow" ,"Holes"};
-                           builder.setItems(colors, new DialogInterface.OnClickListener() {
-                               @Override
-                               public void onClick(DialogInterface dialog, int which) {
-                                   switch (which) {
-                                       case 0:
-                                           polygon.setFillColor(Color.RED);
-                                           break;
-                                       case 1:
-                                           polygon.setFillColor(Color.GREEN);
-                                           break;
-                                       case 2:
-                                           polygon.setFillColor(Color.WHITE);
-                                           break;
-                                       case 3:
-                                           polygon.setFillColor(Color.BLUE);
-                                           break;
-                                       case 4:
-                                           polygon.setFillColor(Color.YELLOW);
-                                           break;
-                                       case 5:
-                                           polygon.setClickable(false);
-                                           break;
+                            String[] colors = {"Red", "Green", "White", "Blue", "Yellow", "Holes"};
+                            builder.setItems(colors, new DialogInterface.OnClickListener() {
+                                @Override
+                                public void onClick(DialogInterface dialog, int which) {
+                                    switch (which) {
+                                        case 0:
+                                            polygon.setFillColor(Color.RED);
+                                            break;
+                                        case 1:
+                                            polygon.setFillColor(Color.GREEN);
+                                            break;
+                                        case 2:
+                                            polygon.setFillColor(Color.WHITE);
+                                            break;
+                                        case 3:
+                                            polygon.setFillColor(Color.BLUE);
+                                            break;
+                                        case 4:
+                                            polygon.setFillColor(Color.YELLOW);
+                                            break;
+                                        case 5:
+                                            polygon.setClickable(false);
+                                            break;
 
 
-
-                                   }
-                               }
-                           });
+                                    }
+                                }
+                            });
 
 // create and show the alert dialog
-                           AlertDialog dialog = builder.create();
-                           dialog.show();
-                       }catch (Exception e){
+                            AlertDialog dialog = builder.create();
+                            dialog.show();
+                        } catch (Exception e) {
 
-                       }
+                        }
 
-                       Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList) , Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Compute Area:" + SphericalUtil.computeArea(latLngList), Toast.LENGTH_SHORT).show();
 
 
-                   }
-               });
+                    }
+                });
                 break;
 
             case R.id.SaveAs:
@@ -386,8 +381,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 holePoly = gMap.addPolygon(polygonHoles);
 
                 holesListPoly = holesList;
-               holeMarkerList.clear();
-              //  holesList.clear();
+                holeMarkerList.clear();
+                //  holesList.clear();
 
 
                 break;
@@ -406,13 +401,11 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 openNdvi();
 
 
-
-
                 break;
 
             case R.id.ndvi:
-                // getPosts();
-                getImage();
+                 getPosts();
+               // getImage();
                 break;
 
 
@@ -429,20 +422,12 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         supportMapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.google_map);
 
 
-
-
-
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://api.agromonitoring.com/agro/1.0/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
 
         jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
-
-
-
-
-
 
 
         checkBox = findViewById(R.id.checkbox);
@@ -462,9 +447,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
-
-
-
 
 
     @Override
@@ -497,35 +479,35 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
     private void getPosts() {
-        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("application/json; charset=utf-8","242be092da689c49ffbc5765a271b282");
+        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("application/json; charset=utf-8", "242be092da689c49ffbc5765a271b282");
 
         call.enqueue(new Callback<List<Post>>() {
 
             @Override
             public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
-                if (!response.isSuccessful()){
-                    Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
+                if (!response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, "ok" + response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
 
-                List<Post> posts=response.body();
+                List<Post> posts = response.body();
 
-                for(Post post:posts) {
-                    String content = "";
+                for (Post post : posts) {
 
-                    content += "name: " + post.getGeo_json().getProperties();
 
-                    Toast.makeText(MainActivity.this, "Polygon " +"\n" + content, Toast.LENGTH_SHORT).show();
+                    content = post.getGeo_json().getGeometry().getCoordinates().toString();
+
+
+                    Toast.makeText(MainActivity.this, "Polygon " + "\n" + content, Toast.LENGTH_SHORT).show();
 
                 }
-
 
 
             }
 
             @Override
             public void onFailure(Call<List<Post>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error "+t, Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Error " + t, Toast.LENGTH_SHORT).show();
 
             }
         });
@@ -535,51 +517,43 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
         String text = textImage;
 
-        Intent intent = new Intent(this,NDVI.class);
-        intent.putExtra(EXTRA_TEXT,text);
+        Intent intent = new Intent(this, NDVI.class);
+        intent.putExtra(EXTRA_TEXT, text);
         startActivity(intent);
 
 
     }
 
 
-
-
-
-
     public void getImage() {
 
-        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1647769302,1647855702,"62374ee3f03cc7dc4271b7d7","242be092da689c49ffbc5765a271b282");
+        Call<List<NdviGet>> call = jsonPlaceHolderApi.getImages(1647769302, 1647855702, "62374ee3f03cc7dc4271b7d7", "242be092da689c49ffbc5765a271b282");
         call.enqueue(new Callback<List<NdviGet>>() {
             @Override
             public void onResponse(Call<List<NdviGet>> call, Response<List<NdviGet>> response) {
-                if (!response.isSuccessful()){
-                    Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
+                if (!response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, "ok" + response.code(), Toast.LENGTH_SHORT).show();
                     return;
                 }
-                List<NdviGet> posts=response.body();
-
-                for(NdviGet post:posts) {
-
+                List<NdviGet> posts = response.body();
+                String content = "";
 
 
-
-                    String content = "";
-
-                    content += "ndvi: " + post.getImage().getNdvi() +"\n";
+                for (NdviGet post : posts) {
 
 
 
-                    Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
+
+                    content += "ndvi: " + post.getImage().getDswi() + "\n";
+
+
+                    Toast.makeText(MainActivity.this, "" + "\n" + content, Toast.LENGTH_SHORT).show();
 
                     textImage = content;
 
 
 
                 }
-
-
-
 
             }
 
@@ -592,26 +566,17 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
-    public Bitmap StringToBitMap(String encodedString){
-        try{
-            byte [] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
+
+    public Bitmap StringToBitMap(String encodedString) {
+        try {
+            byte[] encodeByte = Base64.decode(encodedString, Base64.DEFAULT);
             Bitmap bitmap = BitmapFactory.decodeByteArray(encodeByte, 0, encodeByte.length);
             return bitmap;
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             e.getMessage();
             return null;
         }
     }
-
-
-
-
-
-
-
-
-
 
 
     public void createKMLFile() {
@@ -619,25 +584,21 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         String kmlName = myText;
 
         String kmlInput = polygonString.replace("[", "").replace("lat/lng:", "").replace("(", "")
-                .replace(")", "").replace("]", "").replace(", "," ").replaceFirst("^ *", "").replaceAll(" +", " ");
+                .replace(")", "").replace("]", "").replace(", ", " ").replaceFirst("^ *", "").replaceAll(" +", " ");
 
 
-       kmlInput = kmlInput.replaceAll("(-?\\d+[.]\\d+),(-?\\d+[.]\\d+)", "$2,$1");
-
-
-
-
+        kmlInput = kmlInput.replaceAll("(-?\\d+[.]\\d+),(-?\\d+[.]\\d+)", "$2,$1");
 
 
         String kmlstart = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n" +
                 "<kml xmlns=\"http://www.opengis.net/kml/2.2\">\n" +
                 "<Document>";
 
-        String kmlelement = "<Placemark>"+"<ExtendedData>"+"</ExtendedData>"+"<Polygon>"+"<outerBoundaryIs>"+"<LinearRing>"+"<coordinates>"+kmlInput+"</coordinates>" +
-    "</LinearRing>"+"</outerBoundaryIs>"+"</Polygon>"+"</Placemark>";
+        String kmlelement = "<Placemark>" + "<ExtendedData>" + "</ExtendedData>" + "<Polygon>" + "<outerBoundaryIs>" + "<LinearRing>" + "<coordinates>" + kmlInput + "</coordinates>" +
+                "</LinearRing>" + "</outerBoundaryIs>" + "</Polygon>" + "</Placemark>";
 
 
-        String kmlend = "</Document>" +"</kml>";
+        String kmlend = "</Document>" + "</kml>";
 
         ArrayList<String> content = new ArrayList<String>();
         content.add(0, kmlstart);
@@ -702,7 +663,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
 
-
     public void createJson() throws JSONException {
 
         String jsonstart = "{\n" +
@@ -729,17 +689,15 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 "}";
 
 
-
         ArrayList<String> content = new ArrayList<String>();
         content.add(0, jsonstart);
         content.add(1, jsonelement);
 
         String jsontest = content.get(0) + content.get(1);
-       json = jsontest;
+        json = jsontest;
 
 
-
-                File testexists = new File("/sdcard/download/KML" + "/" + "test55" + ".geojson");
+        File testexists = new File("/sdcard/download/KML" + "/" + "test55" + ".geojson");
         Writer fwriter;
 
         if (!testexists.exists()) {
@@ -795,10 +753,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
 
-
-
-
-
     public static void readFromShape(ArrayList<LatLng> result, PointData[] pointsOfPart) {
 
         ShapeList.clear();
@@ -810,7 +764,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
         PolygonOptions polygonOptions = new PolygonOptions().addAll(ShapeList);
         gMap.addPolygon(polygonOptions);
-
 
 
     }
@@ -863,9 +816,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     }
 
 
-
-
-
     @Override
     public void onMapReady(GoogleMap googleMap) {
 
@@ -879,7 +829,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         gMap.getUiSettings().setZoomControlsEnabled(true);
 
 
-
         gMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
@@ -891,13 +840,9 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 if (checkBoxHoles.isChecked()) {
                     Marker holeMarker = gMap.addMarker(holeOptions);
                     holesList.add(latLng);
-                            holeMarkerList.add(holeMarker);
+                    holeMarkerList.add(holeMarker);
 
-                }
-                else
-
-
-                if (bigpolygonList.isEmpty()) {
+                } else if (bigpolygonList.isEmpty()) {
 
                     Marker marker = gMap.addMarker(markerOptions);
                     latLngList.add(latLng);

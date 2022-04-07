@@ -1,19 +1,27 @@
 package com.example.gmaps.post;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Geometry {
+
     private String type;
-    ArrayList<Object> coordinates = new ArrayList<Object>();
+
+    private ArrayList<List> coordinates;
 
     public String getType() {
         return type;
     }
 
-    public Geometry(String type, ArrayList<Object> coordinates) {
+    public void setType(String type) {
         this.type = type;
-        this.coordinates = coordinates;
-
     }
 
+    public ArrayList<List> getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(ArrayList<List> coordinates) {
+        this.coordinates = coordinates;
+    }
 }

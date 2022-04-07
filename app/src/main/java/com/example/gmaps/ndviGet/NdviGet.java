@@ -1,10 +1,6 @@
 package com.example.gmaps.ndviGet;
 
-import com.example.gmaps.ndviGet.Data;
-import com.example.gmaps.ndviGet.Image;
-import com.example.gmaps.ndviGet.Stats;
-import com.example.gmaps.ndviGet.Sun;
-import com.example.gmaps.ndviGet.Title;
+
 
 public class NdviGet {
 

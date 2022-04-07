@@ -35,7 +35,7 @@ import java.net.URL;
 public class NDVI extends AppCompatActivity {
 
     ImageView imageView;
-    private Context mContext;
+
 
 
     @Override
@@ -49,10 +49,9 @@ public class NDVI extends AppCompatActivity {
 
 
         imageView = findViewById(R.id.ndvi);
+        
 
-
-        Picasso.get().load("https://api.agromonitoring.com/image/1.0/1206237c000/62374ee3f03cc7dc4271b7d7?appid=242be092da689c49ffbc5765a271b282").into(imageView);
-
+        Picasso.get().load(url).into(imageView);
 
 
 

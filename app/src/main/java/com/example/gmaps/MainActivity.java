@@ -35,7 +35,10 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 import com.example.gmaps.ndviGet.NdviGet;
+import com.example.gmaps.post.Geo_Json;
+import com.example.gmaps.post.Geometry;
 import com.example.gmaps.post.Post;
+import com.example.gmaps.post.Properties;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
@@ -79,6 +82,7 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -404,7 +408,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 break;
 
             case R.id.ndvi:
-                 getPosts();
+                createPost();
+                // getPosts();
                // getImage();
                 break;
 
@@ -412,6 +417,47 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public void createPost() {
+        HashMap<String,String> headerMap = new HashMap<>();
+        headerMap.put("Content-Type","application/json");
+
+
+        Properties properties = new Properties();
+        Geometry geometry = new Geometry("Polygon",latLngList);
+        Geo_Json geo_json = new Geo_Json("Feature", properties ,geometry);
+        Post post = new Post("sample",geo_json);
+
+
+        Call<Post> call = jsonPlaceHolderApi.createPost(headerMap,post,"acf65f9a08bada4884544c8116252667");
+
+        call.enqueue(new Callback<Post>() {
+            @Override
+            public void onResponse(Call<Post> call, Response<Post> response) {
+                Toast.makeText(MainActivity.this, "Εζ ποστ ιζ εζ ποστ " + response.code(), Toast.LENGTH_SHORT).show();
+
+                if (!response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, "ok" + response.code(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                String name = response.body().getName();
+                Geo_Json geoJson = response.body().getGeo_json();
+                Geometry geometry1 = response.body().getGeo_json().getGeometry();
+
+
+
+            }
+
+            @Override
+            public void onFailure(Call<Post> call, Throwable t) {
+
+                Toast.makeText(MainActivity.this, "Error " + t, Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
     }
 
     @Override

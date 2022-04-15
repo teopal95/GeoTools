@@ -1,5 +1,7 @@
 package com.example.gmaps.post;
 
+import com.google.android.gms.maps.model.LatLng;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -7,11 +9,11 @@ public class Geometry {
 
     private String type;
 
-    private ArrayList<List> coordinates;
+    private ArrayList<LatLng> coordinates;
 
-    public Geometry(String type, ArrayList<List> coordinates) {
+    public Geometry(String type, List<LatLng> coordinates) {
         this.type = type;
-        this.coordinates = coordinates;
+        this.coordinates = (ArrayList<LatLng>) coordinates;
     }
 
     public String getType() {
@@ -22,11 +24,11 @@ public class Geometry {
         this.type = type;
     }
 
-    public ArrayList<List> getCoordinates() {
+    public ArrayList<LatLng> getCoordinates() {
         return coordinates;
     }
 
-    public void setCoordinates(ArrayList<List> coordinates) {
+    public void setCoordinates(ArrayList<LatLng> coordinates) {
         this.coordinates = coordinates;
     }
 }

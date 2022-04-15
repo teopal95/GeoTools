@@ -8,7 +8,10 @@ public class Post {
     private String name;
     private Geo_Json geo_json;
 
-
+    public Post(String name, Geo_Json geo_json) {
+        this.name = name;
+        this.geo_json = geo_json;
+    }
 
     public String getName() {
         return name;

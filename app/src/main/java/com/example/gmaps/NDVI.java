@@ -49,7 +49,7 @@ public class NDVI extends AppCompatActivity {
 
 
         imageView = findViewById(R.id.ndvi);
-        
+
 
         Picasso.get().load(url).into(imageView);
 

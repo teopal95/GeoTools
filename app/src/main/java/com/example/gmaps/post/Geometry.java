@@ -1,19 +1,39 @@
 package com.example.gmaps.post;
 
+import com.google.android.gms.maps.model.LatLng;
+import com.google.gson.annotations.SerializedName;
+
 import java.util.ArrayList;
+import java.util.List;
 
 public class Geometry {
+    public Geometry(){
+
+    }
+    @SerializedName("type")
     private String type;
-    ArrayList<Object> coordinates = new ArrayList<Object>();
+
+    @SerializedName("coordinates")
+    private String coordinates;
 
     public String getType() {
         return type;
     }
 
-    public Geometry(String type, ArrayList<Object> coordinates) {
+    public void setType(String type) {
         this.type = type;
-        this.coordinates = coordinates;
-
     }
 
+    public String getCoordinates() {
+        return coordinates;
+    }
+
+    public void setCoordinates(String coordinates) {
+        this.coordinates = coordinates;
+    }
+
+    public Geometry(String type, String coordinates) {
+        this.type = type;
+        this.coordinates = coordinates;
+    }
 }

@@ -7,41 +7,70 @@ public class Post {
 
     private String id;
 
-
-    private Geo_json Geo_json;
-
-
-
+    private Gson gson;
 
     private String name;
-    ArrayList<Object> center = new ArrayList<Object>();
-    private float area;
-    private String user_id;
 
+    private String center;
+
+    private double area;
+
+    private String user_id;
 
     public String getId() {
         return id;
     }
 
-    public com.example.gmaps.post.Geo_json getGeo_json() {
-        return Geo_json;
+    public void setId(String id) {
+        this.id = id;
     }
 
+    public Gson getGson() {
+        return gson;
+    }
 
+    public void setGson(Gson gson) {
+        this.gson = gson;
+    }
 
     public String getName() {
         return name;
     }
 
-    public ArrayList<Object> getCenter() {
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getCenter() {
         return center;
     }
 
-    public float getArea() {
+    public void setCenter(String center) {
+        this.center = center;
+    }
+
+    public double getArea() {
         return area;
+    }
+
+    public void setArea(double area) {
+        this.area = area;
     }
 
     public String getUser_id() {
         return user_id;
+    }
+
+    public void setUser_id(String user_id) {
+        this.user_id = user_id;
+    }
+
+    public Post(String id, Gson gson, String name, String center, double area, String user_id) {
+        this.id = id;
+        this.gson = gson;
+        this.name = name;
+        this.center = center;
+        this.area = area;
+        this.user_id = user_id;
     }
 }

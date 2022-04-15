@@ -26,6 +26,11 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
@@ -34,11 +39,17 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 
 import com.example.gmaps.ndviGet.NdviGet;
+import com.example.gmaps.post.Geometry;
+import com.example.gmaps.post.Gson;
 import com.example.gmaps.post.Post;
+import com.example.gmaps.post.Properties;
+import com.example.gmaps.post.postData;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
+import com.google.android.gms.maps.model.GroundOverlayOptions;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -52,6 +63,8 @@ import com.google.maps.android.data.kml.KmlLayer;
 import com.squareup.picasso.Picasso;
 
 
+import org.jetbrains.annotations.NotNull;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.nocrala.tools.gis.data.esri.shapefile.ShapeFileReader;
@@ -78,7 +91,9 @@ import java.io.InputStreamReader;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
@@ -102,16 +117,23 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static final  String EXTRA_TEXT = "com.example.gmaps.EXTRA_TEXT";
 
 private  JsonPlaceHolderApi jsonPlaceHolderApi;
+     postData postData;
+     Gson gson;
+     Geometry geometry;
+     Properties properties;
+     Post post;
 
 
     CheckBox checkBox;
     CheckBox checkBoxHoles;
 
+    public JSONObject jsonObject = new JSONObject();
+
+
 
     public String myText;
     public String json;
     public String textImage;
-    public List<JSONObject> jsonObjectList = new ArrayList<>();
     TextView countText;
     TextView name;
 
@@ -125,6 +147,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     List<Marker> holeMarkerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
     List<LatLng> holesList = new ArrayList<>();
+
     public List<LatLng> holesListPoly = new ArrayList<>();
 
     public static ArrayList<LatLng> ShapeList = new ArrayList<>();
@@ -393,12 +416,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 break;
 
             case R.id.json:
-                try {
-                    createJson();
-                    Toast.makeText(this, "Success", Toast.LENGTH_SHORT).show();
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
+                createPost();
+                Toast.makeText(this, ""+jsonObject, Toast.LENGTH_SHORT).show();
                 break;
 
             case R.id.parse:
@@ -412,7 +431,25 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             case R.id.ndvi:
                 // getPosts();
-                getImage();
+                //getImage();
+              // createPost();
+                HashMap<String,String> headerMap = new HashMap<>();
+                headerMap.put("Content-Type","application/json");
+
+                Call<ResponseBody> call = jsonPlaceHolderApi.createPost(headerMap,jsonObject,"242be092da689c49ffbc5765a271b282");
+
+                call.enqueue(new Callback<ResponseBody>() {
+                    @Override
+                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                        Toast.makeText(MainActivity.this, ""+response.toString(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onFailure(Call<ResponseBody> call, Throwable t) {
+                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+                    }
+                });
                 break;
 
 
@@ -431,15 +468,11 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
-
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.agromonitoring.com/agro/1.0/")
-                .addConverterFactory(GsonConverterFactory.create())
+               .baseUrl("https://api.agromonitoring.com/agro/1.0/")
+               .addConverterFactory(GsonConverterFactory.create())
                 .build();
-
-        jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
-
-
+       jsonPlaceHolderApi = retrofit.create(JsonPlaceHolderApi.class);
 
 
 
@@ -496,40 +529,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         return builder.toString();
     }
 
-    private void getPosts() {
-        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("application/json; charset=utf-8","242be092da689c49ffbc5765a271b282");
-
-        call.enqueue(new Callback<List<Post>>() {
-
-            @Override
-            public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
-                if (!response.isSuccessful()){
-                    Toast.makeText(MainActivity.this, "ok"+response.code(), Toast.LENGTH_SHORT).show();
-                    return;
-                }
-
-                List<Post> posts=response.body();
-
-                for(Post post:posts) {
-                    String content = "";
-
-                    content += "name: " + post.getGeo_json().getProperties();
-
-                    Toast.makeText(MainActivity.this, "Polygon " +"\n" + content, Toast.LENGTH_SHORT).show();
-
-                }
-
-
-
-            }
-
-            @Override
-            public void onFailure(Call<List<Post>> call, Throwable t) {
-                Toast.makeText(MainActivity.this, "Error "+t, Toast.LENGTH_SHORT).show();
-
-            }
-        });
-    }
+    
 
     public void openNdvi() {
 
@@ -541,6 +541,50 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
+
+
+
+    public void createPost() {
+
+
+        JSONObject geometryObject = new JSONObject();
+        JSONObject geoJsonObject = new JSONObject();
+        JSONObject propertiesObject = new JSONObject();
+        JSONArray coordinatesJsonArray = new JSONArray();
+
+        for (LatLng latLng : latLngList) {
+            JSONArray innerArray = null;
+            try {
+                innerArray = new JSONArray(
+                        "[\n" +
+                                latLng.longitude + ", " +
+                                latLng.latitude +
+                                "          ]"
+                );
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+
+            coordinatesJsonArray.put(innerArray);
+        }
+        try {
+            // Build a jsonObject
+            jsonObject.put("name", "sample");
+            geoJsonObject.put("type", "Feature");
+            geoJsonObject.put("properties", propertiesObject);
+            geoJsonObject.put("geometry", geometryObject);
+            geometryObject.put("type", "Polygon");
+            geometryObject.put("coordinates",new JSONArray().put(coordinatesJsonArray));
+                    jsonObject.put("geo_json", geoJsonObject);
+        } catch (JSONException e) {
+            e.printStackTrace();
+
+        }
+
+
+
+    }
+
 
 
 
@@ -561,18 +605,28 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
                 for(NdviGet post:posts) {
 
-
-
-
                     String content;
 
                     content = post.getImage().getNdvi();
 
-
-
                     Toast.makeText(MainActivity.this, "" +"\n" + content, Toast.LENGTH_SHORT).show();
 
                     textImage = content;
+
+                    try {
+                        InputStream targetStream = new ByteArrayInputStream(textImage.getBytes());
+                        Bitmap myBitmap = BitmapFactory.decodeStream(targetStream);
+                        targetStream.close();
+                        BitmapDescriptor bitmapDescriptor = BitmapDescriptorFactory.fromBitmap(myBitmap);
+                        Toast.makeText(MainActivity.this, ""+bitmapDescriptor, Toast.LENGTH_SHORT).show();
+
+                     //   GroundOverlayOptions groundOverlayOptions = new GroundOverlayOptions().position(new LatLng(37.7750, 122.4183),1).image(bitmapDescriptor);
+                      //  gMap.addGroundOverlay(groundOverlayOptions);
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
 
 
 

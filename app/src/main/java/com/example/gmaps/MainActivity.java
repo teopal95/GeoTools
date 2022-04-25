@@ -10,6 +10,7 @@ import android.graphics.Color;
 import android.net.Uri;
 import android.os.Bundle;
 import android.text.InputType;
+import android.util.ArrayMap;
 import android.util.Base64;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -28,7 +29,6 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
-import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
@@ -36,6 +36,7 @@ import retrofit2.Callback;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
+
 
 
 import com.example.gmaps.ndviGet.NdviGet;
@@ -88,9 +89,11 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -147,6 +150,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     List<Marker> holeMarkerList = new ArrayList<>();
     List<LatLng> bigpolygonList = new ArrayList<>();
     List<LatLng> holesList = new ArrayList<>();
+    static List<LatLng> staticList = new ArrayList<>();
 
     public List<LatLng> holesListPoly = new ArrayList<>();
 
@@ -416,40 +420,29 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 break;
 
             case R.id.json:
-                createPost();
-                Toast.makeText(this, ""+jsonObject, Toast.LENGTH_SHORT).show();
+                try {
+                    createPost();
+                    Toast.makeText(this, ""+jsonObject, Toast.LENGTH_SHORT).show();
+
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                
                 break;
 
             case R.id.parse:
 
-                openNdvi();
-
-
+             openNdvi();
 
 
                 break;
 
             case R.id.ndvi:
-                // getPosts();
+
                 //getImage();
-              // createPost();
-                HashMap<String,String> headerMap = new HashMap<>();
-                headerMap.put("Content-Type","application/json");
+                postObject();
 
-                Call<ResponseBody> call = jsonPlaceHolderApi.createPost(headerMap,jsonObject,"242be092da689c49ffbc5765a271b282");
 
-                call.enqueue(new Callback<ResponseBody>() {
-                    @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        Toast.makeText(MainActivity.this, ""+response.toString(), Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-                        Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
-
-                    }
-                });
                 break;
 
 
@@ -542,15 +535,44 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
     }
 
+    void postObject() {
+
+        RequestBody body = RequestBody.create(okhttp3.MediaType.parse("application/json; charset=utf-8"),jsonObject.toString());
 
 
-    public void createPost() {
+
+        Call<ResponseBody> call = jsonPlaceHolderApi.createPost(body,"242be092da689c49ffbc5765a271b282");
+
+        call.enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
+                Toast.makeText(MainActivity.this, ""+response.toString(), Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onFailure(Call<ResponseBody> call, Throwable t) {
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
+            }
+        });
+
+
+    }
+
+
+
+
+    public void createPost() throws JSONException {
 
 
         JSONObject geometryObject = new JSONObject();
         JSONObject geoJsonObject = new JSONObject();
         JSONObject propertiesObject = new JSONObject();
         JSONArray coordinatesJsonArray = new JSONArray();
+
+        
+
+
 
         for (LatLng latLng : latLngList) {
             JSONArray innerArray = null;
@@ -567,6 +589,10 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             coordinatesJsonArray.put(innerArray);
         }
+
+        coordinatesJsonArray.put( coordinatesJsonArray.get(0));
+
+
         try {
             // Build a jsonObject
             jsonObject.put("name", "sample");

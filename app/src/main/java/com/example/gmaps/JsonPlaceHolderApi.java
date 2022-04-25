@@ -43,8 +43,7 @@ public interface JsonPlaceHolderApi {
 
     @POST("polygons")
     Call<ResponseBody> createPost(
-            @HeaderMap Map<String,String> headers,
-            @Body JSONObject jsonObject,
+            @Body RequestBody params,
             @Query("appid") String appid);
 
 

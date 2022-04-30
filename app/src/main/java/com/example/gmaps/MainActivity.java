@@ -61,10 +61,8 @@ import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.maps.android.PolyUtil;
 import com.google.maps.android.SphericalUtil;
 import com.google.maps.android.data.kml.KmlLayer;
-import com.squareup.picasso.Picasso;
 
 
-import org.jetbrains.annotations.NotNull;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -419,29 +417,20 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
                 break;
 
-            case R.id.json:
-                try {
-                    createPost();
-                    Toast.makeText(this, ""+jsonObject, Toast.LENGTH_SHORT).show();
 
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-                
-                break;
 
             case R.id.parse:
 
-             openNdvi();
+                getImage();
+                //postObject();
 
 
                 break;
 
             case R.id.ndvi:
 
-                //getImage();
-                postObject();
 
+                openNdvi();
 
                 break;
 

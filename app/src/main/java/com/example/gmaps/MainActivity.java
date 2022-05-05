@@ -133,6 +133,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     public String myText;
+    public String JsonId;
     public String json;
     public String textImage;
     TextView countText;
@@ -143,6 +144,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
     Polygon polygon = null;
     Polygon holePoly = null;
     public List<LatLng> latLngList = new ArrayList<>();
+    public List<LatLng> jsonList = new ArrayList<>();
     List<LatLng> polygonList = new ArrayList<>();
     List<Marker> markerList = new ArrayList<>();
     List<Marker> holeMarkerList = new ArrayList<>();
@@ -214,6 +216,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     String sdouble = Double.toString(SphericalUtil.computeArea(latLngList));
                     countText = findViewById(R.id.countText);
                     countText.setText(sdouble);
+                    jsonList.addAll(latLngList);
 
 
 
@@ -276,6 +279,9 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     holesListPoly.clear();
                     holesList.clear();
                     holeMarkerList.clear();
+                    jsonList.clear();
+
+
 
 
                 } catch (Exception e) {
@@ -417,21 +423,31 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
                 break;
 
+            case R.id.json:
+                try {
+                    createJson();
+                    Toast.makeText(this, ""+jsonObject, Toast.LENGTH_SHORT).show();
+                    jsonList.clear();
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+                break;
+
+            case R.id.post:
+                postObject();
+                break;
 
 
             case R.id.parse:
-
                 getImage();
-                //postObject();
-
-
                 break;
 
             case R.id.ndvi:
-
-
                 openNdvi();
+                break;
 
+            case R.id.jsonId:
+                getJsonId();
                 break;
 
 
@@ -551,7 +567,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
-    public void createPost() throws JSONException {
+    public void createJson() throws JSONException {
 
 
         JSONObject geometryObject = new JSONObject();
@@ -563,7 +579,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
-        for (LatLng latLng : latLngList) {
+        for (LatLng latLng : jsonList) {
             JSONArray innerArray = null;
             try {
                 innerArray = new JSONArray(
@@ -584,7 +600,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
         try {
             // Build a jsonObject
-            jsonObject.put("name", "sample");
+            jsonObject.put("name", "polygonnnn");
             geoJsonObject.put("type", "Feature");
             geoJsonObject.put("properties", propertiesObject);
             geoJsonObject.put("geometry", geometryObject);
@@ -598,6 +614,37 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
 
+    }
+    public void getJsonId() {
+
+
+
+        Call<List<Post>> call = jsonPlaceHolderApi.getPosts("242be092da689c49ffbc5765a271b282");
+        call.enqueue(new Callback<List<Post>>() {
+            @Override
+            public void onResponse(Call<List<Post>> call, Response<List<Post>> response) {
+
+                if (!response.isSuccessful()) {
+                    Toast.makeText(MainActivity.this, ""+response.code(), Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                List<Post> posts = response.body();
+                for (Post post : posts) {
+                    JsonId = post.getId() + "  " + post.getName();
+
+                    Toast.makeText(MainActivity.this, ""+JsonId, Toast.LENGTH_SHORT).show();
+                }
+
+
+
+            }
+
+            @Override
+            public void onFailure(Call<List<Post>> call, Throwable t) {
+                Toast.makeText(MainActivity.this, ""+t, Toast.LENGTH_SHORT).show();
+
+            }
+        });
     }
 
 
@@ -661,9 +708,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
-
-
-
 
 
 
@@ -760,98 +804,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         }
     }
 
-
-
-    public void createJson() throws JSONException {
-
-        String jsonstart = "{\n" +
-                "   \"name\":\"Polygon Sample\",\n" +
-                "   \"geo_json\":{\n" +
-                "      \"type\":\"Feature\",\n" +
-                "      \"properties\":{\n" +
-                "\n" +
-                "      },\n" +
-                "      \"geometry\":{\n" +
-                "         \"type\":\"Polygon\",";
-
-        String jsonelement = "\"coordinates\":[\n" +
-                "            [\n" +
-                "               [-121.1958,37.6683],\n" +
-                "               [-121.1779,37.6687],\n" +
-                "               [-121.1773,37.6792],\n" +
-                "               [-121.1958,37.6792],\n" +
-                "               [-121.1958,37.6683]\n" +
-                "            ]\n" +
-                "         ]\n" +
-                "      }\n" +
-                "   }\n" +
-                "}";
-
-
-
-        ArrayList<String> content = new ArrayList<String>();
-        content.add(0, jsonstart);
-        content.add(1, jsonelement);
-
-        String jsontest = content.get(0) + content.get(1);
-       json = jsontest;
-
-
-
-                File testexists = new File("/sdcard/download/KML" + "/" + "test55" + ".geojson");
-        Writer fwriter;
-
-        if (!testexists.exists()) {
-            try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test55" + ".geojson");
-                fwriter.write(jsontest);
-                fwriter.flush();
-                fwriter.close();
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            }
-        } else {
-
-            //schleifenvariable
-            String filecontent = "";
-
-            ArrayList<String> newoutput = new ArrayList<String>();
-            ;
-
-            try {
-                BufferedReader in = new BufferedReader(new FileReader(testexists));
-                while ((filecontent = in.readLine()) != null)
-
-                    newoutput.add(filecontent);
-
-            } catch (FileNotFoundException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            } catch (IOException e1) {
-                // TODO Auto-generated catch block
-                e1.printStackTrace();
-            }
-
-            newoutput.add(2, jsonelement);
-
-            String rewrite = "";
-            for (String s : newoutput) {
-                rewrite += s;
-            }
-
-            try {
-                fwriter = new FileWriter("/sdcard/download/KML" + "/" + "test55" + ".geojson");
-                fwriter.write(rewrite);
-                fwriter.flush();
-                fwriter.close();
-            } catch (IOException e) {
-                // TODO Auto-generated catch block
-                e.printStackTrace();
-            }
-
-        }
-
-    }
 
 
 

@@ -8,6 +8,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/gavr/AndroidStudioProjects/GeoTools/app/src/main/res/layout/activity_main.xml" value="0.27291666666666664" />
+        <entry key="..\:/Users/gavr/AndroidStudioProjects/GeoTools/app/src/main/res/layout/activity_n_d_v_i.xml" value="0.27291666666666664" />
         <entry key="..\:/Users/gavr/AndroidStudioProjects/GeoTools/app/src/main/res/menu/ex_menu.xml" value="0.2611111111111111" />
         <entry key="app/src/main/res/drawable/ic_build.xml" value="0.278125" />
         <entry key="app/src/main/res/drawable/ic_layers.xml" value="0.278125" />

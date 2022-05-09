@@ -110,7 +110,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     public static GoogleMap gMap;
 
     private static final int REQUEST_KML = 1;
-    private static final int REQUEST_SHP = 1;
+    private static final int REQUEST_SHP = 2;
     public int holes = 0;
 
     private static final String AGRO_API_LINK = "http://api.agromonitoring.com/agro/1.0";
@@ -160,8 +160,8 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         super.onActivityResult(requestCode, resultCode, data);
 
 
-        if (requestCode == REQUEST_SHP) {
-            if (resultCode == RESULT_OK) {
+        if (requestCode == REQUEST_SHP && resultCode == RESULT_OK)
+             {
                 Uri uri = data.getData();
                 try {
                     InputStream in = getContentResolver().openInputStream(uri);
@@ -171,10 +171,23 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
+        }else if(requestCode == REQUEST_KML && resultCode == RESULT_OK){
+            Uri uri = data.getData();
+
+            String fileContent = readTextFile(uri);
+            InputStream is = new ByteArrayInputStream(fileContent.getBytes());
+
+            try {
+                KmlLayer kmlLayer = new KmlLayer(gMap, is, getApplicationContext());
+                kmlLayer.addLayerToMap();
+
+            } catch (IOException | XmlPullParserException e) {
+                Toast.makeText(MainActivity.this, "error", Toast.LENGTH_SHORT).show();
+
             }
         }
 
-        if (requestCode == REQUEST_KML) {
+     /*   if (requestCode == REQUEST_KML) {
             if (resultCode == RESULT_OK) {
                 Uri uri = data.getData();
 
@@ -191,7 +204,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                 }
 
             }
-        }
+        }*/
 
     }
 
@@ -216,11 +229,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
                     countText.setText(sdouble);
 
 
-
-
-
-
-
                     if (checkBox.isChecked()) {
                         bigpolygonList.clear();
                        bigpolygonList.addAll(latLngList);
@@ -241,24 +249,43 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
             break;
 
-            case R.id.kml:
+            case R.id.Import:
 
-                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
-                intent.setType("*/*");
-                startActivityForResult(intent, REQUEST_KML);
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setTitle("Import:");
+
+                String[] opt = {"KML","SHP"};
+                builder.setItems(opt, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case 0:
+                                Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
+                                intent.setType("*/*");
+                                startActivityForResult(intent, REQUEST_KML);
+                                break;
+
+                            case 1:
+                                Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
+                                chooseFile.setType("*/*");
+                                startActivityForResult(chooseFile, REQUEST_SHP);
+                                break;
+                        }
+
+                    }
+                });
+
+
+                AlertDialog dialog = builder.create();
+                dialog.show();
+
+
 
                 break;
 
             case R.id.open:
 
                 openActivityLoad();
-
-                break;
-
-            case R.id.shape:
-                Intent chooseFile = new Intent(Intent.ACTION_GET_CONTENT);
-                chooseFile.setType("*/*");
-                startActivityForResult(chooseFile, REQUEST_SHP);
 
                 break;
 
@@ -547,6 +574,7 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
 
 
     }
+
 
 
 
@@ -852,8 +880,6 @@ private  JsonPlaceHolderApi jsonPlaceHolderApi;
         }
 
     }
-
-
 
 
 

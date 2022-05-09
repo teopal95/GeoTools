@@ -10,9 +10,9 @@
         app:showAsAction="never"
         />
 
-    <item android:id="@+id/kml"
+    <item android:id="@+id/Import"
 
-        android:title="kml"
+        android:title="Import"
         app:showAsAction="never"/>
 
 
@@ -21,14 +21,8 @@
         android:title="Open"
         app:showAsAction="never"/>
 
-    <item android:id="@+id/shape"
-
-        android:title="Shp"
-        app:showAsAction="never"/>
-
 
     <item android:id="@+id/clear"
-
         android:title="Clear"
         app:showAsAction="never"/>
 
@@ -43,9 +37,7 @@
     <item android:id = "@+id/holes"
         android:title="Add Hole"
         app:showAsAction="never"/>
-    <item android:id = "@+id/json"
-        android:title="Json"
-        app:showAsAction="never"/>
+
     <item android:id = "@+id/parse"
         android:title="Parse"
         app:showAsAction="never"/>

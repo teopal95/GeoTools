@@ -27,9 +27,8 @@ import retrofit2.http.Query;
 public interface JsonPlaceHolderApi {
 
 
-    @Headers("Static-Header: 123")
     @GET("polygons")
-    Call<List<Post>> getPosts(@Header("Dynamic-Header") String header, @Query("appid") String appid);
+    Call<List<Post>> getPosts(@Query("appid") String appid);
 
     @GET("image/search")
     Call<List<NdviGet>> getImages(

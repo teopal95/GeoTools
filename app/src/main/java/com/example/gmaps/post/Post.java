@@ -5,13 +5,15 @@ import java.util.ArrayList;
 
 public class Post {
 
+
+
     private String id;
 
     private Gson gson;
 
     private String name;
 
-    private String center;
+    private ArrayList center;
 
     private double area;
 
@@ -41,11 +43,11 @@ public class Post {
         this.name = name;
     }
 
-    public String getCenter() {
+    public ArrayList getCenter() {
         return center;
     }
 
-    public void setCenter(String center) {
+    public void setCenter(ArrayList center) {
         this.center = center;
     }
 
@@ -65,7 +67,7 @@ public class Post {
         this.user_id = user_id;
     }
 
-    public Post(String id, Gson gson, String name, String center, double area, String user_id) {
+    public Post(String id, Gson gson, String name, ArrayList center, double area, String user_id) {
         this.id = id;
         this.gson = gson;
         this.name = name;

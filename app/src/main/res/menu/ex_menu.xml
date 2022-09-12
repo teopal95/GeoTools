@@ -46,12 +46,18 @@
     <item android:id = "@+id/json"
         android:title="Json"
         app:showAsAction="never"/>
+    <item android:id = "@+id/post"
+        android:title="Post"
+        app:showAsAction="never"/>
     <item android:id = "@+id/parse"
         android:title="Parse"
         app:showAsAction="never"/>
 
     <item android:id="@+id/ndvi"
         android:title="NDVI"
+        app:showAsAction="never"/>
+    <item android:id = "@+id/jsonId"
+        android:title="GET ID"
         app:showAsAction="never"/>
 
 
